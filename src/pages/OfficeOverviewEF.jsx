@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format, addDays, startOfWeek, addWeeks, getWeek } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { isPublicHoliday } from '../utils/publicHolidays';
@@ -221,9 +221,9 @@ export default function OfficeOverviewEF() {
     setLoading(true);
     try {
       const [empsData, projectsData, assignmentsData] = await Promise.all([
-        base44.entities.Employee.filter({ is_active: true, is_ef: true }),
-        base44.entities.Project.filter({ status: 'aktiv', is_ef_project: true }),
-        base44.entities.Assignment.list(),
+        api.entities.Employee.filter({ is_active: true, is_ef: true }),
+        api.entities.Project.filter({ status: 'aktiv', is_ef_project: true }),
+        api.entities.Assignment.list(),
       ]);
 
       // Only projektleiter, buerokraft and lagerist with is_ef
@@ -314,9 +314,9 @@ export default function OfficeOverviewEF() {
 
     try {
       if (existing.length > 0) {
-        await Promise.all(existing.map(a => base44.entities.Assignment.delete(a.id)));
+        await Promise.all(existing.map(a => api.entities.Assignment.delete(a.id)));
       }
-      const created = await base44.entities.Assignment.create(newAssignment);
+      const created = await api.entities.Assignment.create(newAssignment);
       setAssignments(prev => prev.map(a => a.id === tempId ? { ...a, id: created.id } : a));
     } catch {
       toast.error('Fehler beim Speichern');
@@ -339,7 +339,7 @@ export default function OfficeOverviewEF() {
     toast.success('Eintrag entfernt');
 
     try {
-      await Promise.all(existing.map(a => base44.entities.Assignment.delete(a.id)));
+      await Promise.all(existing.map(a => api.entities.Assignment.delete(a.id)));
     } catch {
       toast.error('Fehler beim Löschen');
       loadData();
@@ -653,7 +653,7 @@ export default function OfficeOverviewEF() {
                     setAssignments(prev => prev.map(a => a.id === ass.id ? { ...a, notes: dialogComment.trim() || null } : a));
                     setDialog(null);
                     try {
-                      await base44.entities.Assignment.update(ass.id, { notes: dialogComment.trim() || null });
+                      await api.entities.Assignment.update(ass.id, { notes: dialogComment.trim() || null });
                       toast.success('Kommentar gespeichert');
                     } catch {
                       toast.error('Fehler beim Speichern');

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import ColonnenTab from '@/components/ColonnenTab';
 import {
   GraduationCap,
@@ -94,7 +94,7 @@ export default function AzubiManagement() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const data = await base44.entities.Employee.list();
+      const data = await api.entities.Employee.list();
       setEmployees(data);
     } catch (error) {
       console.error('Error loading employees:', error);
@@ -173,21 +173,21 @@ export default function AzubiManagement() {
         apprentice_year: form.apprentice_year ? parseInt(form.apprentice_year) : null,
       };
       if (editingEmployee) {
-        await base44.entities.Employee.update(editingEmployee.id, data);
+        await api.entities.Employee.update(editingEmployee.id, data);
       } else {
         // Ferien von vorhandenem Azubi übernehmen
         const existingAzubi = employees.find(e => e.employee_type === 'azubi');
         if (existingAzubi && existingAzubi.vacation_periods?.length > 0 && form.vacation_periods.length === 0) {
           data.vacation_periods = existingAzubi.vacation_periods;
         }
-        await base44.entities.Employee.create(data);
+        await api.entities.Employee.create(data);
       }
 
       // Wenn Azubi: vacation_periods auf alle anderen Azubis übertragen
       if (form.vacation_periods.length > 0) {
         const allAzubis = employees.filter(e => e.employee_type === 'azubi' && e.id !== editingEmployee?.id);
         await Promise.all(allAzubis.map(azubi =>
-          base44.entities.Employee.update(azubi.id, { vacation_periods: form.vacation_periods })
+          api.entities.Employee.update(azubi.id, { vacation_periods: form.vacation_periods })
         ));
       }
 
@@ -206,7 +206,7 @@ export default function AzubiManagement() {
   const handleDelete = async () => {
     if (!deleteDialog.id) return;
     try {
-      await base44.entities.Employee.delete(deleteDialog.id);
+      await api.entities.Employee.delete(deleteDialog.id);
       setDeleteDialog({ open: false, id: null });
       loadData();
       toast.success('Azubi gelöscht');
@@ -219,7 +219,7 @@ export default function AzubiManagement() {
     setSavingMentor(azubiId);
     try {
       const value = mentorId === '__none__' ? null : mentorId;
-      await base44.entities.Employee.update(azubiId, { mentor_id: value });
+      await api.entities.Employee.update(azubiId, { mentor_id: value });
       setEmployees(prev => prev.map(e => e.id === azubiId ? { ...e, mentor_id: value } : e));
       toast.success('Betreuer gespeichert');
     } catch {

@@ -4,7 +4,7 @@ import { format, addDays } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 
 export default function EFProjectsSection({
   efProjects,
@@ -190,7 +190,7 @@ export default function EFProjectsSection({
                 }}
                 onBlur={async () => {
                   try {
-                    await base44.entities.Project.update(project.id, {
+                    await api.entities.Project.update(project.id, {
                       lead_assembler: project.lead_assembler
                     });
                   } catch (error) {

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format } from 'date-fns';
 import { Info } from 'lucide-react';
 
@@ -32,14 +32,14 @@ export default function CellInfoButton({ projectId, date, cellInfos, onCellInfos
     const trimmed = inputValue.trim();
     if (existing) {
       if (trimmed) {
-        await base44.entities.CellInfo.update(existing.id, { info: trimmed, show_in_pdf: showInPdf });
+        await api.entities.CellInfo.update(existing.id, { info: trimmed, show_in_pdf: showInPdf });
         onCellInfosChange(cellInfos.map(ci => ci.id === existing.id ? { ...ci, info: trimmed, show_in_pdf: showInPdf } : ci));
       } else {
-        await base44.entities.CellInfo.delete(existing.id);
+        await api.entities.CellInfo.delete(existing.id);
         onCellInfosChange(cellInfos.filter(ci => ci.id !== existing.id));
       }
     } else if (trimmed) {
-      const created = await base44.entities.CellInfo.create({ project_id: projectId, date: dateStr, info: trimmed, show_in_pdf: showInPdf });
+      const created = await api.entities.CellInfo.create({ project_id: projectId, date: dateStr, info: trimmed, show_in_pdf: showInPdf });
       onCellInfosChange([...cellInfos, created]);
     }
     setEditing(false);

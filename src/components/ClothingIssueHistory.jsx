@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import {
   Table,
   TableBody,
@@ -197,9 +197,9 @@ export default function ClothingIssueHistory({ issues, deliveries = [], items = 
     try {
       const clothingItem = items.find(i => i.id === issue.clothing_item_id);
       if (clothingItem) {
-        await base44.entities.ClothingItem.update(clothingItem.id, { current_stock: clothingItem.current_stock + issue.quantity });
+        await api.entities.ClothingItem.update(clothingItem.id, { current_stock: clothingItem.current_stock + issue.quantity });
       }
-      await base44.entities.ClothingIssue.update(issue.id, {
+      await api.entities.ClothingIssue.update(issue.id, {
         is_returned: true,
         returned_date: new Date().toISOString().split('T')[0],
       });

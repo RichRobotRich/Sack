@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format, isPast, isToday, addDays } from 'date-fns';
 import { de } from 'date-fns/locale';
 import {
@@ -87,10 +87,10 @@ export default function Workshop() {
     setLoading(true);
     try {
       const [tasksData, projectsData, employeesData, assignmentsData] = await Promise.all([
-        base44.entities.WorkshopTask.list('-due_date'),
-        base44.entities.Project.list(),
-        base44.entities.Employee.list(),
-        base44.entities.Assignment.filter({})
+        api.entities.WorkshopTask.list('-due_date'),
+        api.entities.Project.list(),
+        api.entities.Employee.list(),
+        api.entities.Assignment.filter({})
       ]);
       setTasks(tasksData);
       setProjects(projectsData);
@@ -131,7 +131,7 @@ export default function Workshop() {
       };
       
       if (editingTask) {
-        await base44.entities.WorkshopTask.update(editingTask.id, data);
+        await api.entities.WorkshopTask.update(editingTask.id, data);
       } else {
         // Optimistic update
         const newTask = {
@@ -146,7 +146,7 @@ export default function Workshop() {
         resetForm();
 
         // API call
-        await base44.entities.WorkshopTask.create({
+        await api.entities.WorkshopTask.create({
           ...data,
           status: 'offen'
         });
@@ -167,7 +167,7 @@ export default function Workshop() {
 
   const handleStatusChange = async (taskId, newStatus) => {
     try {
-      await base44.entities.WorkshopTask.update(taskId, { status: newStatus });
+      await api.entities.WorkshopTask.update(taskId, { status: newStatus });
       loadData();
     } catch (error) {
       console.error('Error updating status:', error);
@@ -178,7 +178,7 @@ export default function Workshop() {
     if (!deleteDialog.id) return;
     
     try {
-      await base44.entities.WorkshopTask.delete(deleteDialog.id);
+      await api.entities.WorkshopTask.delete(deleteDialog.id);
       setDeleteDialog({ open: false, id: null });
       loadData();
     } catch (error) {

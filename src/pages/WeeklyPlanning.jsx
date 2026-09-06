@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format, addDays, startOfWeek, addWeeks, getWeek } from 'date-fns';
 import { isPublicHoliday, getPublicHolidayName, getNextWorkday } from '../utils/publicHolidays';
 import { de } from 'date-fns/locale';
@@ -102,7 +102,7 @@ export default function WeeklyPlanning() {
 
   useEffect(() => {
     loadData();
-    base44.entities.Crew.list().then(setCrews).catch(() => {});
+    api.entities.Crew.list().then(setCrews).catch(() => {});
   }, [weekStart]);
 
   useEffect(() => {
@@ -116,16 +116,16 @@ export default function WeeklyPlanning() {
      setLoading(true);
      try {
        const [projectsData, employeesData, assignmentsData, leaveRequestsData, tempWorkersData, tempAssignmentsData, projectCommentsData, cellInfosData, bridgeDaysData, currentUser] = await Promise.all([
-         base44.entities.Project.filter({ status: 'aktiv' }),
-         base44.entities.Employee.filter({ is_active: true }),
-         base44.entities.Assignment.list(),
-         base44.entities.LeaveRequest.filter({ status: 'genehmigt', request_type: 'urlaub' }),
-         base44.entities.TempWorker.filter({ is_active: true }),
-         base44.entities.TempAssignment.list(),
-         base44.entities.ProjectComment.list(),
-         base44.entities.CellInfo.list(),
-         base44.entities.BridgeDay.list(),
-         base44.auth.me()
+         api.entities.Project.filter({ status: 'aktiv' }),
+         api.entities.Employee.filter({ is_active: true }),
+         api.entities.Assignment.list(),
+         api.entities.LeaveRequest.filter({ status: 'genehmigt', request_type: 'urlaub' }),
+         api.entities.TempWorker.filter({ is_active: true }),
+         api.entities.TempAssignment.list(),
+         api.entities.ProjectComment.list(),
+         api.entities.CellInfo.list(),
+         api.entities.BridgeDay.list(),
+         api.auth.me()
        ]);
 
        // Duplikate bereinigen: gleicher Mitarbeiter + gleicher Tag → nur ersten behalten, Rest löschen
@@ -142,7 +142,7 @@ export default function WeeklyPlanning() {
          }
        }
        if (duplicateIds.length > 0) {
-         await Promise.all(duplicateIds.map(id => base44.entities.Assignment.delete(id)));
+         await Promise.all(duplicateIds.map(id => api.entities.Assignment.delete(id)));
          // Assignments ohne Duplikate weiterverwenden
          const cleanedAssignments = assignmentsData.filter(a => !duplicateIds.includes(a.id));
          assignmentsData.splice(0, assignmentsData.length, ...cleanedAssignments);
@@ -266,7 +266,7 @@ export default function WeeklyPlanning() {
       
       if (assignmentsToCreate.length > 0) {
         try {
-          await base44.entities.Assignment.bulkCreate(assignmentsToCreate);
+          await api.entities.Assignment.bulkCreate(assignmentsToCreate);
           await loadData();
         } catch (error) {
           console.error('Error auto-assigning approved leave:', error);
@@ -358,10 +358,10 @@ export default function WeeklyPlanning() {
       if (hasChanges) {
         try {
           if (assignmentsToDelete.length > 0) {
-            await Promise.all(assignmentsToDelete.map(id => base44.entities.Assignment.delete(id)));
+            await Promise.all(assignmentsToDelete.map(id => api.entities.Assignment.delete(id)));
           }
           if (assignmentsToCreate.length > 0) {
-            await base44.entities.Assignment.bulkCreate(assignmentsToCreate);
+            await api.entities.Assignment.bulkCreate(assignmentsToCreate);
           }
           await loadData();
           if (assignmentsToDelete.length > 0) {
@@ -650,7 +650,7 @@ export default function WeeklyPlanning() {
 
   const handleDeleteComment = async (commentId) => {
     setProjectComments(prev => prev.filter(c => c.id !== commentId));
-    base44.entities.ProjectComment.delete(commentId).catch(() => loadData());
+    api.entities.ProjectComment.delete(commentId).catch(() => loadData());
   };
 
   const handleDeleteCommentFromDate = async (projectId, fromMondayDate) => {
@@ -659,7 +659,7 @@ export default function WeeklyPlanning() {
     const toDelete = projectComments.filter(c => c.project_id === projectId && c.start_date >= fromStr);
     if (toDelete.length === 0) return;
     setProjectComments(prev => prev.filter(c => !(c.project_id === projectId && c.start_date >= fromStr)));
-    toDelete.forEach(c => base44.entities.ProjectComment.delete(c.id).catch(() => {}));
+    toDelete.forEach(c => api.entities.ProjectComment.delete(c.id).catch(() => {}));
     toast.success('Kommentar ab diesem Montag entfernt');
   };
 
@@ -725,7 +725,7 @@ export default function WeeklyPlanning() {
         if (azubiAssignment) {
           optimisticUpdate(
             prev => prev.map(a => a.id === azubiAssignment.id ? { ...a, project_id: destProjectId } : a),
-            async () => { await base44.entities.Assignment.update(azubiAssignment.id, { project_id: destProjectId }); }
+            async () => { await api.entities.Assignment.update(azubiAssignment.id, { project_id: destProjectId }); }
           );
         }
       }
@@ -739,7 +739,7 @@ export default function WeeklyPlanning() {
         if (a) {
           optimisticUpdate(
             prev => prev.map(x => x.id === a.id ? { ...x, project_id: destProjectId } : x),
-            async () => { await base44.entities.Assignment.update(a.id, { project_id: destProjectId }); }
+            async () => { await api.entities.Assignment.update(a.id, { project_id: destProjectId }); }
           );
         }
       }
@@ -819,7 +819,7 @@ export default function WeeklyPlanning() {
         optimisticUpdate(
           prev => [...prev, { id: tempId, employee_id: employeeId, project_id: destProjectId, date: destDateStr, assignment_type: 'baustelle' }],
           async () => {
-            const created = await base44.entities.Assignment.create({ employee_id: employeeId, project_id: destProjectId, date: destDateStr, assignment_type: 'baustelle' });
+            const created = await api.entities.Assignment.create({ employee_id: employeeId, project_id: destProjectId, date: destDateStr, assignment_type: 'baustelle' });
             setAssignments(prev => prev.map(a => a.id === tempId ? { ...a, id: created.id } : a));
             toast.success('Mitarbeiter eingeplant');
           }
@@ -828,7 +828,7 @@ export default function WeeklyPlanning() {
         optimisticUpdate(
           prev => [...prev, { id: tempId, employee_id: employeeId, date: destDateStr, assignment_type: destProjectId, project_id: null }],
           async () => {
-            const created = await base44.entities.Assignment.create({ employee_id: employeeId, date: destDateStr, assignment_type: destProjectId, project_id: null });
+            const created = await api.entities.Assignment.create({ employee_id: employeeId, date: destDateStr, assignment_type: destProjectId, project_id: null });
             setAssignments(prev => prev.map(a => a.id === tempId ? { ...a, id: created.id } : a));
             toast.success('Als Abwesenheit markiert');
           }
@@ -837,7 +837,7 @@ export default function WeeklyPlanning() {
         optimisticUpdate(
           prev => [...prev, { id: tempId, employee_id: employeeId, date: destDateStr, assignment_type: 'baustelle', project_id: 'workshop' }],
           async () => {
-            const created = await base44.entities.Assignment.create({ employee_id: employeeId, date: destDateStr, assignment_type: 'baustelle', project_id: 'workshop' });
+            const created = await api.entities.Assignment.create({ employee_id: employeeId, date: destDateStr, assignment_type: 'baustelle', project_id: 'workshop' });
             setAssignments(prev => prev.map(a => a.id === tempId ? { ...a, id: created.id } : a));
             toast.success('Zur Werkstatt hinzugefügt');
           }
@@ -861,7 +861,7 @@ export default function WeeklyPlanning() {
         optimisticUpdate(
           prev => [...prev, { id: tempId, employee_id: existingAssignment.employee_id, project_id: destProjectId, date: destDateStr, assignment_type: 'baustelle' }],
           async () => {
-            const created = await base44.entities.Assignment.create({ employee_id: existingAssignment.employee_id, project_id: destProjectId, date: destDateStr, assignment_type: 'baustelle' });
+            const created = await api.entities.Assignment.create({ employee_id: existingAssignment.employee_id, project_id: destProjectId, date: destDateStr, assignment_type: 'baustelle' });
             setAssignments(prev => prev.map(a => a.id === tempId ? { ...a, id: created.id } : a));
             toast.success('Mitarbeiter für diesen Tag eingeplant');
           }
@@ -870,7 +870,7 @@ export default function WeeklyPlanning() {
         optimisticUpdate(
           prev => [...prev, { id: tempId, employee_id: existingAssignment.employee_id, date: destDateStr, assignment_type: destProjectId, project_id: null }],
           async () => {
-            const created = await base44.entities.Assignment.create({ employee_id: existingAssignment.employee_id, date: destDateStr, assignment_type: destProjectId, project_id: null });
+            const created = await api.entities.Assignment.create({ employee_id: existingAssignment.employee_id, date: destDateStr, assignment_type: destProjectId, project_id: null });
             setAssignments(prev => prev.map(a => a.id === tempId ? { ...a, id: created.id } : a));
             toast.success('Als Abwesenheit markiert');
           }
@@ -879,7 +879,7 @@ export default function WeeklyPlanning() {
         optimisticUpdate(
           prev => [...prev, { id: tempId, employee_id: existingAssignment.employee_id, date: destDateStr, assignment_type: 'baustelle', project_id: 'workshop' }],
           async () => {
-            const created = await base44.entities.Assignment.create({ employee_id: existingAssignment.employee_id, date: destDateStr, assignment_type: 'baustelle', project_id: 'workshop' });
+            const created = await api.entities.Assignment.create({ employee_id: existingAssignment.employee_id, date: destDateStr, assignment_type: 'baustelle', project_id: 'workshop' });
             setAssignments(prev => prev.map(a => a.id === tempId ? { ...a, id: created.id } : a));
             toast.success('Zur Werkstatt hinzugefügt');
           }
@@ -956,7 +956,7 @@ export default function WeeklyPlanning() {
       optimisticUpdate(
         prev => prev.map(a => a.id === existingAssignment.id ? { ...a, project_id: destProjectId, date: destDateStr } : a),
         async () => {
-          await base44.entities.Assignment.update(existingAssignment.id, { project_id: destProjectId, date: destDateStr });
+          await api.entities.Assignment.update(existingAssignment.id, { project_id: destProjectId, date: destDateStr });
           toast.success('Mitarbeiter verschoben');
         }
       );
@@ -1011,7 +1011,7 @@ export default function WeeklyPlanning() {
       optimisticUpdate(
         prev => prev.filter(a => a.id !== existingAssignment.id),
         async () => {
-          await base44.entities.Assignment.delete(existingAssignment.id);
+          await api.entities.Assignment.delete(existingAssignment.id);
           toast.success('Mitarbeiter aus Planung entfernt');
         }
       );
@@ -1022,7 +1022,7 @@ export default function WeeklyPlanning() {
       optimisticUpdate(
         prev => prev.map(a => a.id === existingAssignment.id ? { ...a, assignment_type: destProjectId, date: destDateStr, project_id: null } : a),
         async () => {
-          await base44.entities.Assignment.update(existingAssignment.id, { assignment_type: destProjectId, date: destDateStr, project_id: null });
+          await api.entities.Assignment.update(existingAssignment.id, { assignment_type: destProjectId, date: destDateStr, project_id: null });
           toast.success('Als Abwesenheit markiert');
         }
       );
@@ -1030,7 +1030,7 @@ export default function WeeklyPlanning() {
       optimisticUpdate(
         prev => prev.map(a => a.id === existingAssignment.id ? { ...a, project_id: 'workshop', date: destDateStr } : a),
         async () => {
-          await base44.entities.Assignment.update(existingAssignment.id, { project_id: 'workshop', date: destDateStr });
+          await api.entities.Assignment.update(existingAssignment.id, { project_id: 'workshop', date: destDateStr });
           toast.success('Zur Werkstatt verschoben');
         }
       );
@@ -1051,7 +1051,7 @@ export default function WeeklyPlanning() {
     optimisticUpdate(
       prev => prev.map(a => a.id === assignment.id ? { ...a, is_supervisor: newValue } : a),
       async () => {
-        await base44.entities.Assignment.update(assignment.id, { is_supervisor: newValue });
+        await api.entities.Assignment.update(assignment.id, { is_supervisor: newValue });
         toast.success(newValue ? 'TS: Übernachtung aktiviert' : 'TS: Übernachtung deaktiviert');
       }
     );
@@ -1065,7 +1065,7 @@ export default function WeeklyPlanning() {
         ...formData,
         apprentice_year: formData.apprentice_year ? parseInt(formData.apprentice_year) : null
       };
-      await base44.entities.Employee.update(editingEmployee.id, updatedData);
+      await api.entities.Employee.update(editingEmployee.id, updatedData);
       // Lokal updaten ohne Seite neu zu laden
       setEmployees(prev => prev.map(e => e.id === editingEmployee.id ? { ...e, ...updatedData } : e));
       setEditDialogOpen(false);
@@ -1115,7 +1115,7 @@ export default function WeeklyPlanning() {
       toast.success(`"${label}" eingetragen`);
       (async () => {
         try {
-          const created = await base44.entities.Assignment.create({ project_id: projectId, date: dateStr, assignment_type: 'baustelle', notes: label });
+          const created = await api.entities.Assignment.create({ project_id: projectId, date: dateStr, assignment_type: 'baustelle', notes: label });
           setAssignments(prev => prev.map(a => a.id === tempId ? { ...a, id: created.id } : a));
         } catch {
           toast.error('Fehler beim Speichern – Daten werden neu geladen');
@@ -1139,7 +1139,7 @@ export default function WeeklyPlanning() {
       toast.success('Kommentar ab diesem Montag gesetzt');
       (async () => {
         try {
-          const created = await base44.entities.ProjectComment.create({ project_id: projectId, text: commentInput.trim(), start_date: dateStr });
+          const created = await api.entities.ProjectComment.create({ project_id: projectId, text: commentInput.trim(), start_date: dateStr });
           setProjectComments(prev => prev.map(c => c.id === tempId ? { ...c, id: created.id } : c));
         } catch {
           toast.error('Fehler beim Speichern');
@@ -1171,9 +1171,9 @@ export default function WeeklyPlanning() {
     (async () => {
       try {
         if (existingIds.length > 0) {
-          await Promise.all(existingIds.map(id => base44.entities.Assignment.delete(id)));
+          await Promise.all(existingIds.map(id => api.entities.Assignment.delete(id)));
         }
-        const created = await base44.entities.Assignment.create({ employee_id: employeeId, project_id: projectId, date: dateStr, assignment_type: 'baustelle' });
+        const created = await api.entities.Assignment.create({ employee_id: employeeId, project_id: projectId, date: dateStr, assignment_type: 'baustelle' });
         setAssignments(prev => prev.map(a => a.id === tempId ? { ...a, id: created.id } : a));
       } catch {
         toast.error('Fehler beim Speichern – Daten werden neu geladen');
@@ -1232,7 +1232,7 @@ export default function WeeklyPlanning() {
 
       (async () => {
         try {
-          const created = await base44.entities.Assignment.bulkCreate(toCreate);
+          const created = await api.entities.Assignment.bulkCreate(toCreate);
           if (Array.isArray(created)) {
             setAssignments(prev => {
               let updated = [...prev];
@@ -1303,7 +1303,7 @@ export default function WeeklyPlanning() {
       // Im Hintergrund speichern
       (async () => {
         try {
-          const created = await base44.entities.Assignment.bulkCreate(toCreate);
+          const created = await api.entities.Assignment.bulkCreate(toCreate);
           // Temp-IDs durch echte IDs ersetzen
           if (Array.isArray(created)) {
             setAssignments(prev => {
@@ -1332,9 +1332,9 @@ export default function WeeklyPlanning() {
       // Löschen
       setBridgeDays(prev => { const s = new Set(prev); s.delete(dateStr); return s; });
       try {
-        const all = await base44.entities.BridgeDay.list();
+        const all = await api.entities.BridgeDay.list();
         const existing = all.find(d => d.date === dateStr);
-        if (existing) await base44.entities.BridgeDay.delete(existing.id);
+        if (existing) await api.entities.BridgeDay.delete(existing.id);
         invalidateBridgeDayCache();
         toast.success('Brückentag entfernt');
       } catch {
@@ -1345,7 +1345,7 @@ export default function WeeklyPlanning() {
       // Hinzufügen
       setBridgeDays(prev => new Set([...prev, dateStr]));
       try {
-        await base44.entities.BridgeDay.create({ date: dateStr });
+        await api.entities.BridgeDay.create({ date: dateStr });
         invalidateBridgeDayCache();
         toast.success('Brückentag eingetragen – alle haben Urlaub!');
       } catch {
@@ -1530,7 +1530,7 @@ export default function WeeklyPlanning() {
                   setProjects={setProjects}
                   onDeleteAssignment={(assignmentId) => {
                     setAssignments(prev => prev.filter(a => a.id !== assignmentId));
-                    base44.entities.Assignment.delete(assignmentId).catch(() => loadData());
+                    api.entities.Assignment.delete(assignmentId).catch(() => loadData());
                   }}
                   getCommentForProjectOnMonday={getCommentForProjectOnMonday}
                   onDeleteCommentFromDate={handleDeleteCommentFromDate}
@@ -1543,7 +1543,7 @@ export default function WeeklyPlanning() {
                   onCopyFromDay={onCopyFromDay}
                   onDeleteComment={(commentId) => {
                     setProjectComments(prev => prev.filter(c => c.id !== commentId));
-                    base44.entities.ProjectComment.delete(commentId).catch(() => loadData());
+                    api.entities.ProjectComment.delete(commentId).catch(() => loadData());
                   }}
                   onToggleTsOvernight={handleToggleTsOvernight}
                   />
@@ -1632,7 +1632,7 @@ export default function WeeklyPlanning() {
             .sort((a, b) => (a.abbreviation || '').localeCompare(b.abbreviation || ''))}
           onSave={(order) => {
             setPlSortOrder(order);
-            base44.auth.updateMe({ pl_sort_order: order }).catch(() => {});
+            api.auth.updateMe({ pl_sort_order: order }).catch(() => {});
             loadData();
           }}
         />
@@ -1663,7 +1663,7 @@ export default function WeeklyPlanning() {
                     optimisticUpdate(
                       prev => prev.map(a => a.id === assignment.id ? { ...a, project_id: destProjectId } : a),
                       async () => {
-                        await base44.entities.Assignment.update(assignment.id, { project_id: destProjectId });
+                        await api.entities.Assignment.update(assignment.id, { project_id: destProjectId });
                       }
                     );
                   }
@@ -1699,7 +1699,7 @@ export default function WeeklyPlanning() {
                     optimisticUpdate(
                       prev => prev.map(a => a.id === azubiAssignment.id ? { ...a, project_id: destProjectId } : a),
                       async () => {
-                        await base44.entities.Assignment.update(azubiAssignment.id, { project_id: destProjectId });
+                        await api.entities.Assignment.update(azubiAssignment.id, { project_id: destProjectId });
                       }
                     );
                   }

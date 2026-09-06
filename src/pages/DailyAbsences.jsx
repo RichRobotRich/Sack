@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { Calendar, Thermometer, Plane } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
@@ -22,9 +22,9 @@ export default function DailyAbsences() {
 
       // Fetch leave requests (approved) AND today's assignments AND employees in parallel
       const [allRequests, todayAssignments, allEmployees] = await Promise.all([
-        base44.entities.LeaveRequest.filter({ status: 'genehmigt' }, '-created_date'),
-        base44.entities.Assignment.filter({ date: today }),
-        base44.entities.Employee.list(),
+        api.entities.LeaveRequest.filter({ status: 'genehmigt' }, '-created_date'),
+        api.entities.Assignment.filter({ date: today }),
+        api.entities.Employee.list(),
       ]);
 
       setEmployees(allEmployees);
@@ -47,7 +47,7 @@ export default function DailyAbsences() {
       const vacationEmployeeIds = new Set(todaysVacationFromRequests.map(r => r.employee_id));
 
       // Fetch ALL assignments of type krank/urlaub starting from today to find end dates
-      const futureAbsenceAssignments = await base44.entities.Assignment.filter({});
+      const futureAbsenceAssignments = await api.entities.Assignment.filter({});
       const allAbsenceAssignments = futureAbsenceAssignments.filter(
         a => (a.assignment_type === 'krank' || a.assignment_type === 'urlaub') && a.date >= today
       );

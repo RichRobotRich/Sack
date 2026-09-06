@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format } from 'date-fns';
 import {
   Newspaper,
@@ -95,8 +95,8 @@ export default function NewsManagement() {
     setLoading(true);
     try {
       const [newsData, pollsData] = await Promise.all([
-        base44.entities.News.list('-created_date'),
-        base44.entities.Poll.list('-created_date')
+        api.entities.News.list('-created_date'),
+        api.entities.Poll.list('-created_date')
       ]);
       setNews(newsData);
       setPolls(pollsData);
@@ -122,9 +122,9 @@ export default function NewsManagement() {
       };
 
       if (editingNews) {
-        await base44.entities.News.update(editingNews.id, newsData);
+        await api.entities.News.update(editingNews.id, newsData);
       } else {
-        await base44.entities.News.create(newsData);
+        await api.entities.News.create(newsData);
       }
       
       setDialogOpen(false);
@@ -141,7 +141,7 @@ export default function NewsManagement() {
     if (!newsToDelete) return;
     
     try {
-      await base44.entities.News.delete(newsToDelete.id);
+      await api.entities.News.delete(newsToDelete.id);
       setDeleteDialogOpen(false);
       setNewsToDelete(null);
       await loadNews();
@@ -153,7 +153,7 @@ export default function NewsManagement() {
 
   const handleToggleActive = async (newsItem) => {
     try {
-      await base44.entities.News.update(newsItem.id, {
+      await api.entities.News.update(newsItem.id, {
         is_active: !newsItem.is_active
       });
       await loadNews();
@@ -182,7 +182,7 @@ export default function NewsManagement() {
 
     setUploadingImage(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await api.integrations.Core.UploadFile({ file });
       setImageForm({ ...imageForm, url: file_url });
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -218,7 +218,7 @@ export default function NewsManagement() {
 
     setUploadingPollImage(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await api.integrations.Core.UploadFile({ file });
       setPollForm({ ...pollForm, image_url: file_url });
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -261,9 +261,9 @@ export default function NewsManagement() {
       };
 
       if (editingPoll) {
-        await base44.entities.Poll.update(editingPoll.id, pollData);
+        await api.entities.Poll.update(editingPoll.id, pollData);
       } else {
-        await base44.entities.Poll.create(pollData);
+        await api.entities.Poll.create(pollData);
       }
       
       setPollDialogOpen(false);
@@ -280,7 +280,7 @@ export default function NewsManagement() {
     if (!pollToDelete) return;
     
     try {
-      await base44.entities.Poll.delete(pollToDelete.id);
+      await api.entities.Poll.delete(pollToDelete.id);
       setDeleteDialogOpen(false);
       setPollToDelete(null);
       await loadNews();
@@ -292,7 +292,7 @@ export default function NewsManagement() {
 
   const handleTogglePollActive = async (poll) => {
     try {
-      await base44.entities.Poll.update(poll.id, {
+      await api.entities.Poll.update(poll.id, {
         is_active: !poll.is_active
       });
       await loadNews();

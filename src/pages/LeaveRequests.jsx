@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format, differenceInDays, parseISO, isWeekend } from 'date-fns';
 import { isPublicHoliday } from '@/utils/publicHolidays';
 import { de } from 'date-fns/locale';
@@ -199,8 +199,8 @@ export default function LeaveRequests() {
 
   const loadData = async () => {
     try {
-      const currentUser = await base44.auth.me();
-      const employees = await base44.entities.Employee.list();
+      const currentUser = await api.auth.me();
+      const employees = await api.entities.Employee.list();
 
       // Find linked employee via employee_id stored on user profile
       let linkedEmployee = null;
@@ -212,7 +212,7 @@ export default function LeaveRequests() {
 
       // Load only requests relevant to this user
       let requests = [];
-      const allRequests = await base44.entities.LeaveRequest.filter({
+      const allRequests = await api.entities.LeaveRequest.filter({
         request_type: 'urlaub'
       }, '-created_date');
 
@@ -262,7 +262,7 @@ export default function LeaveRequests() {
       setRequests(prev => [newRequest, ...prev]);
 
       // Send to admin/HR
-      const recipients = await base44.entities.EmailRecipient.filter({ 
+      const recipients = await api.entities.EmailRecipient.filter({ 
         is_active: true 
       });
 
@@ -294,7 +294,7 @@ export default function LeaveRequests() {
 
       try {
         for (const recipient of leaveRecipients) {
-          await base44.integrations.Core.SendEmail({
+          await api.integrations.Core.SendEmail({
             to: recipient.email,
             subject: `Urlaubsantrag: ${user.display_name || user.full_name || user.email}`,
             body: adminEmailBody
@@ -316,7 +316,7 @@ export default function LeaveRequests() {
           }
         };
 
-        await base44.integrations.Core.SendEmail({
+        await api.integrations.Core.SendEmail({
           to: user.email,
           subject: 'Urlaubsantrag erfolgreich eingereicht',
           body: `
@@ -341,7 +341,7 @@ export default function LeaveRequests() {
       setForm({ start_date: null, end_date: null, is_half_day: false, half_day_type: 'vormittag', reason: '' });
 
       // API call
-       await base44.entities.LeaveRequest.create({
+       await api.entities.LeaveRequest.create({
          employee_id: employeeId,
          employee_name: employeeName,
          requester_role_id: user.role_id,
@@ -360,7 +360,7 @@ export default function LeaveRequests() {
       const newEndStr = format(form.end_date, 'yyyy-MM-dd');
       const newWorkdays = new Set(getWorkdaysInRange(newStartStr, newEndStr));
 
-      const allCurrentRequests = await base44.entities.LeaveRequest.filter({ request_type: 'urlaub' });
+      const allCurrentRequests = await api.entities.LeaveRequest.filter({ request_type: 'urlaub' });
       const overlappingRevokeRequests = allCurrentRequests.filter(r => {
         if (!r.notes?.includes('__revoke_request_for_')) return false;
         // Alle Aufhebungsanträge (egal ob genehmigt oder eingereicht) löschen
@@ -370,7 +370,7 @@ export default function LeaveRequests() {
 
       if (overlappingRevokeRequests.length > 0) {
         await Promise.all(overlappingRevokeRequests.map(r =>
-          base44.entities.LeaveRequest.delete(r.id).catch(() => {/* already deleted */})
+          api.entities.LeaveRequest.delete(r.id).catch(() => {/* already deleted */})
         ));
       }
 
@@ -389,7 +389,7 @@ export default function LeaveRequests() {
       // Einfach löschen
       if (!confirm('Möchten Sie diesen Urlaubsantrag wirklich zurückziehen?')) return;
       try {
-        await base44.entities.LeaveRequest.delete(request.id);
+        await api.entities.LeaveRequest.delete(request.id);
         await loadData();
       } catch (error) {
         console.error('Error withdrawing request:', error);
@@ -434,7 +434,7 @@ export default function LeaveRequests() {
       await Promise.all(ranges.map(range => {
         const startDay = range[0];
         const endDay = range[range.length - 1];
-        return base44.entities.LeaveRequest.create({
+        return api.entities.LeaveRequest.create({
           employee_id: revokeRequest.employee_id,
           employee_name: revokeRequest.employee_name,
           requester_role_id: user.role_id,

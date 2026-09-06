@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format, parseISO } from 'date-fns';
 import { de } from 'date-fns/locale';
 import {
@@ -65,8 +65,8 @@ export default function WeeklyReportManagement() {
     setLoading(true);
     try {
       const [user, reportsData] = await Promise.all([
-        base44.auth.me(),
-        base44.entities.WeeklyReport.list('-created_date')
+        api.auth.me(),
+        api.entities.WeeklyReport.list('-created_date')
       ]);
       
       setCurrentUser(user);
@@ -74,7 +74,7 @@ export default function WeeklyReportManagement() {
 
       // Try to load users, but don't fail if it doesn't work
       try {
-        const usersResponse = await base44.functions.invoke('listAllUsers', {});
+        const usersResponse = await api.functions.invoke('listAllUsers', {});
         setUsers(usersResponse.data.users || []);
       } catch (userError) {
         console.warn('Could not load users:', userError);
@@ -117,7 +117,7 @@ export default function WeeklyReportManagement() {
     
     setSubmitting(true);
     try {
-      await base44.entities.WeeklyReport.update(reviewingReport.id, {
+      await api.entities.WeeklyReport.update(reviewingReport.id, {
         status,
         reviewed_by: currentUser?.email,
         reviewed_at: new Date().toISOString(),
@@ -188,7 +188,7 @@ export default function WeeklyReportManagement() {
 
   const handleDownloadPDF = async (report) => {
     try {
-      const { data } = await base44.functions.invoke('downloadWeeklyReport', { reportId: report.id });
+      const { data } = await api.functions.invoke('downloadWeeklyReport', { reportId: report.id });
       const blob = new Blob([data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');

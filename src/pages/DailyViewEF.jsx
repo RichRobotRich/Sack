@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format, getDay, startOfWeek } from 'date-fns';
 import { isPublicHoliday, getPublicHolidayName } from '@/utils/publicHolidays';
 import { de } from 'date-fns/locale';
@@ -52,11 +52,11 @@ export default function DailyViewEF() {
     setLoading(true);
     try {
       const [assignmentsData, employeesData, allEmployeesData, projectsData, vehiclesData] = await Promise.all([
-        base44.entities.Assignment.filter({ date: format(selectedDate, 'yyyy-MM-dd') }),
-        base44.entities.Employee.filter({ is_ef: true }),
-        base44.entities.Employee.list(),
-        base44.entities.Project.filter({ is_ef_project: true }),
-        base44.entities.Vehicle.filter({ is_ef: true })
+        api.entities.Assignment.filter({ date: format(selectedDate, 'yyyy-MM-dd') }),
+        api.entities.Employee.filter({ is_ef: true }),
+        api.entities.Employee.list(),
+        api.entities.Project.filter({ is_ef_project: true }),
+        api.entities.Vehicle.filter({ is_ef: true })
       ]);
       
       // Assignments von EF-Projekten und Abwesenheiten von EF-Mitarbeitern
@@ -236,7 +236,7 @@ export default function DailyViewEF() {
       previousDate.setDate(previousDate.getDate() - 1);
       const prevDateStr = format(previousDate, 'yyyy-MM-dd');
 
-      const prevAssignments = await base44.entities.Assignment.filter({ date: prevDateStr });
+      const prevAssignments = await api.entities.Assignment.filter({ date: prevDateStr });
 
       // Für jede heutige Baustellen-Assignment: Fahrzeug vom Vortag für dasselbe Projekt übernehmen
       const updates = [];
@@ -247,7 +247,7 @@ export default function DailyViewEF() {
           a => a.project_id === todayAssignment.project_id && a.vehicle_id
         );
         if (prevWithVehicle) {
-          updates.push(base44.entities.Assignment.update(todayAssignment.id, { vehicle_id: prevWithVehicle.vehicle_id }));
+          updates.push(api.entities.Assignment.update(todayAssignment.id, { vehicle_id: prevWithVehicle.vehicle_id }));
         }
       }
 
@@ -362,8 +362,8 @@ export default function DailyViewEF() {
 
     (async () => {
       try {
-        if (prevOwners.length > 0) await Promise.all(prevOwners.map(id => base44.entities.Assignment.update(id, { vehicle_id: null })));
-        if (target) await base44.entities.Assignment.update(target.id, { vehicle_id: vehicleId });
+        if (prevOwners.length > 0) await Promise.all(prevOwners.map(id => api.entities.Assignment.update(id, { vehicle_id: null })));
+        if (target) await api.entities.Assignment.update(target.id, { vehicle_id: vehicleId });
       } catch {
         toast.error('Fehler beim Speichern – Daten werden neu geladen');
         loadData();
@@ -383,7 +383,7 @@ export default function DailyViewEF() {
       const owners = assignments.filter(a => a.vehicle_id === vehicleId).map(a => a.id);
       setAssignments(prev => prev.map(a => owners.includes(a.id) ? { ...a, vehicle_id: null } : a));
       toast.success('Fahrzeug freigegeben');
-      Promise.all(owners.map(id => base44.entities.Assignment.update(id, { vehicle_id: null }))).catch(() => { toast.error('Fehler'); loadData(); });
+      Promise.all(owners.map(id => api.entities.Assignment.update(id, { vehicle_id: null }))).catch(() => { toast.error('Fehler'); loadData(); });
       return;
     }
 
@@ -411,8 +411,8 @@ export default function DailyViewEF() {
 
       (async () => {
         try {
-          if (prevOwners.length > 0) await Promise.all(prevOwners.map(id => base44.entities.Assignment.update(id, { vehicle_id: null })));
-          await base44.entities.Assignment.update(targetAssignment.id, { vehicle_id: vehicleId });
+          if (prevOwners.length > 0) await Promise.all(prevOwners.map(id => api.entities.Assignment.update(id, { vehicle_id: null })));
+          await api.entities.Assignment.update(targetAssignment.id, { vehicle_id: vehicleId });
         } catch {
           toast.error('Fehler beim Zuweisen');
           loadData();

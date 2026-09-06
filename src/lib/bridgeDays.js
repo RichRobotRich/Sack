@@ -1,4 +1,4 @@
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 
 // Cached bridge days list
 let _cache = null;
@@ -9,7 +9,7 @@ export async function getBridgeDays() {
   const now = Date.now();
   if (_cache && now - _cacheTime < CACHE_TTL) return _cache;
   try {
-    const days = await base44.entities.BridgeDay.list();
+    const days = await api.entities.BridgeDay.list();
     _cache = new Set(days.map(d => d.date));
     _cacheTime = now;
     return _cache;

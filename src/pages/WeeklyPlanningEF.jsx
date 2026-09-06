@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format, addDays, startOfWeek, addWeeks, getWeek, isWeekend } from 'date-fns';
 import { isPublicHoliday, getPublicHolidayName, getNextWorkday } from '../utils/publicHolidays';
 import { de } from 'date-fns/locale';
@@ -105,14 +105,14 @@ export default function WeeklyPlanningEF() {
     setLoading(true);
     try {
       const [projectsData, efEmployeesData, allProjectLeadersData, assignmentsData, leaveRequestsData, tempWorkersData, tempAssignmentsData, projectCommentsData] = await Promise.all([
-       base44.entities.Project.filter({ status: 'aktiv', is_ef_project: true }),
-       base44.entities.Employee.filter({ is_active: true, is_ef: true }),
-       base44.entities.Employee.filter({ is_active: true, employee_type: 'projektleiter' }),
-       base44.entities.Assignment.list(),
-       base44.entities.LeaveRequest.filter({ status: 'genehmigt', request_type: 'urlaub' }),
-       base44.entities.TempWorker.filter({ is_active: true, is_ef: true }),
-       base44.entities.TempAssignment.list(),
-       base44.entities.ProjectComment.list()
+       api.entities.Project.filter({ status: 'aktiv', is_ef_project: true }),
+       api.entities.Employee.filter({ is_active: true, is_ef: true }),
+       api.entities.Employee.filter({ is_active: true, employee_type: 'projektleiter' }),
+       api.entities.Assignment.list(),
+       api.entities.LeaveRequest.filter({ status: 'genehmigt', request_type: 'urlaub' }),
+       api.entities.TempWorker.filter({ is_active: true, is_ef: true }),
+       api.entities.TempAssignment.list(),
+       api.entities.ProjectComment.list()
       ]);
 
       // Merge: EF-Mitarbeiter + alle Projektleiter (für korrekte PL-Kürzel-Anzeige)
@@ -202,7 +202,7 @@ export default function WeeklyPlanningEF() {
     
     if (assignmentsToCreate.length > 0) {
       try {
-        await base44.entities.Assignment.bulkCreate(assignmentsToCreate);
+        await api.entities.Assignment.bulkCreate(assignmentsToCreate);
         await loadData();
       } catch (error) {
         console.error('Error auto-assigning approved leave:', error);
@@ -262,7 +262,7 @@ export default function WeeklyPlanningEF() {
     
     if (assignmentsToCreate.length > 0) {
       try {
-        await base44.entities.Assignment.bulkCreate(assignmentsToCreate);
+        await api.entities.Assignment.bulkCreate(assignmentsToCreate);
         await loadData();
         const schoolCount = assignmentsToCreate.filter(a => a.assignment_type === 'schule').length;
         const tbzCount = assignmentsToCreate.filter(a => a.assignment_type === 'tbz').length;
@@ -320,7 +320,7 @@ export default function WeeklyPlanningEF() {
 
     (async () => {
       try {
-        const created = await base44.entities.Assignment.bulkCreate(toCreate);
+        const created = await api.entities.Assignment.bulkCreate(toCreate);
         if (Array.isArray(created)) {
           setAssignments(prev => {
             let updated = [...prev];
@@ -573,7 +573,7 @@ export default function WeeklyPlanningEF() {
     const toDelete = projectComments.filter(c => c.project_id === projectId && c.start_date >= fromStr);
     if (toDelete.length === 0) return;
     setProjectComments(prev => prev.filter(c => !(c.project_id === projectId && c.start_date >= fromStr)));
-    toDelete.forEach(c => base44.entities.ProjectComment.delete(c.id).catch(() => {}));
+    toDelete.forEach(c => api.entities.ProjectComment.delete(c.id).catch(() => {}));
     toast.success('Kommentar ab diesem Montag entfernt');
   };
 
@@ -614,7 +614,7 @@ export default function WeeklyPlanningEF() {
       toast.success(`"${label}" eingetragen`);
       (async () => {
         try {
-          const created = await base44.entities.Assignment.create({ project_id: projectId, date: dateStr, assignment_type: 'baustelle', notes: label });
+          const created = await api.entities.Assignment.create({ project_id: projectId, date: dateStr, assignment_type: 'baustelle', notes: label });
           setAssignments(prev => prev.map(a => a.id === tempId ? { ...a, id: created.id } : a));
         } catch {
           toast.error('Fehler beim Speichern – Daten werden neu geladen');
@@ -636,7 +636,7 @@ export default function WeeklyPlanningEF() {
       toast.success('Kommentar ab diesem Montag gesetzt');
       (async () => {
         try {
-          const created = await base44.entities.ProjectComment.create({ project_id: projectId, text: commentInput.trim(), start_date: dateStr });
+          const created = await api.entities.ProjectComment.create({ project_id: projectId, text: commentInput.trim(), start_date: dateStr });
           setProjectComments(prev => prev.map(c => c.id === tempId ? { ...c, id: created.id } : c));
         } catch {
           toast.error('Fehler beim Speichern');
@@ -661,8 +661,8 @@ export default function WeeklyPlanningEF() {
 
     (async () => {
       try {
-        if (existingIds.length > 0) await Promise.all(existingIds.map(id => base44.entities.Assignment.delete(id)));
-        const created = await base44.entities.Assignment.create({ employee_id: employeeId, project_id: projectId, date: dateStr, assignment_type: 'baustelle' });
+        if (existingIds.length > 0) await Promise.all(existingIds.map(id => api.entities.Assignment.delete(id)));
+        const created = await api.entities.Assignment.create({ employee_id: employeeId, project_id: projectId, date: dateStr, assignment_type: 'baustelle' });
         setAssignments(prev => prev.map(a => a.id === tempId ? { ...a, id: created.id } : a));
       } catch {
         toast.error('Fehler beim Speichern – Daten werden neu geladen');
@@ -707,17 +707,17 @@ export default function WeeklyPlanningEF() {
       if (destType === 'cell') {
         optimisticUpdate(
           prev => [...prev, { id: tempId, employee_id: employeeId, project_id: destProjectId, date: destDateStr, assignment_type: 'baustelle' }],
-          async () => { const c = await base44.entities.Assignment.create({ employee_id: employeeId, project_id: destProjectId, date: destDateStr, assignment_type: 'baustelle' }); setAssignments(p => p.map(a => a.id === tempId ? { ...a, id: c.id } : a)); toast.success('Mitarbeiter eingeplant'); }
+          async () => { const c = await api.entities.Assignment.create({ employee_id: employeeId, project_id: destProjectId, date: destDateStr, assignment_type: 'baustelle' }); setAssignments(p => p.map(a => a.id === tempId ? { ...a, id: c.id } : a)); toast.success('Mitarbeiter eingeplant'); }
         );
       } else if (destType === 'absence') {
         optimisticUpdate(
           prev => [...prev, { id: tempId, employee_id: employeeId, date: destDateStr, assignment_type: destProjectId, project_id: null }],
-          async () => { const c = await base44.entities.Assignment.create({ employee_id: employeeId, date: destDateStr, assignment_type: destProjectId, project_id: null }); setAssignments(p => p.map(a => a.id === tempId ? { ...a, id: c.id } : a)); toast.success('Als Abwesenheit markiert'); }
+          async () => { const c = await api.entities.Assignment.create({ employee_id: employeeId, date: destDateStr, assignment_type: destProjectId, project_id: null }); setAssignments(p => p.map(a => a.id === tempId ? { ...a, id: c.id } : a)); toast.success('Als Abwesenheit markiert'); }
         );
       } else if (destType === 'workshop') {
         optimisticUpdate(
           prev => [...prev, { id: tempId, employee_id: employeeId, date: destDateStr, assignment_type: 'baustelle', project_id: 'workshop' }],
-          async () => { const c = await base44.entities.Assignment.create({ employee_id: employeeId, date: destDateStr, assignment_type: 'baustelle', project_id: 'workshop' }); setAssignments(p => p.map(a => a.id === tempId ? { ...a, id: c.id } : a)); toast.success('Zur Werkstatt hinzugefügt'); }
+          async () => { const c = await api.entities.Assignment.create({ employee_id: employeeId, date: destDateStr, assignment_type: 'baustelle', project_id: 'workshop' }); setAssignments(p => p.map(a => a.id === tempId ? { ...a, id: c.id } : a)); toast.success('Zur Werkstatt hinzugefügt'); }
         );
       }
       return;
@@ -736,17 +736,17 @@ export default function WeeklyPlanningEF() {
       if (destType === 'cell') {
         optimisticUpdate(
           prev => [...prev, { id: tempId, employee_id: existingAssignment.employee_id, project_id: destProjectId, date: destDateStr, assignment_type: 'baustelle' }],
-          async () => { const c = await base44.entities.Assignment.create({ employee_id: existingAssignment.employee_id, project_id: destProjectId, date: destDateStr, assignment_type: 'baustelle' }); setAssignments(p => p.map(a => a.id === tempId ? { ...a, id: c.id } : a)); toast.success('Mitarbeiter eingeplant'); }
+          async () => { const c = await api.entities.Assignment.create({ employee_id: existingAssignment.employee_id, project_id: destProjectId, date: destDateStr, assignment_type: 'baustelle' }); setAssignments(p => p.map(a => a.id === tempId ? { ...a, id: c.id } : a)); toast.success('Mitarbeiter eingeplant'); }
         );
       } else if (destType === 'absence') {
         optimisticUpdate(
           prev => [...prev, { id: tempId, employee_id: existingAssignment.employee_id, date: destDateStr, assignment_type: destProjectId, project_id: null }],
-          async () => { const c = await base44.entities.Assignment.create({ employee_id: existingAssignment.employee_id, date: destDateStr, assignment_type: destProjectId, project_id: null }); setAssignments(p => p.map(a => a.id === tempId ? { ...a, id: c.id } : a)); toast.success('Als Abwesenheit markiert'); }
+          async () => { const c = await api.entities.Assignment.create({ employee_id: existingAssignment.employee_id, date: destDateStr, assignment_type: destProjectId, project_id: null }); setAssignments(p => p.map(a => a.id === tempId ? { ...a, id: c.id } : a)); toast.success('Als Abwesenheit markiert'); }
         );
       } else if (destType === 'workshop') {
         optimisticUpdate(
           prev => [...prev, { id: tempId, employee_id: existingAssignment.employee_id, date: destDateStr, assignment_type: 'baustelle', project_id: 'workshop' }],
-          async () => { const c = await base44.entities.Assignment.create({ employee_id: existingAssignment.employee_id, date: destDateStr, assignment_type: 'baustelle', project_id: 'workshop' }); setAssignments(p => p.map(a => a.id === tempId ? { ...a, id: c.id } : a)); toast.success('Zur Werkstatt hinzugefügt'); }
+          async () => { const c = await api.entities.Assignment.create({ employee_id: existingAssignment.employee_id, date: destDateStr, assignment_type: 'baustelle', project_id: 'workshop' }); setAssignments(p => p.map(a => a.id === tempId ? { ...a, id: c.id } : a)); toast.success('Zur Werkstatt hinzugefügt'); }
         );
       }
       return;
@@ -758,13 +758,13 @@ export default function WeeklyPlanningEF() {
     }
 
     if (destType === 'pool') {
-      optimisticUpdate(prev => prev.filter(a => a.id !== existingAssignment.id), async () => { await base44.entities.Assignment.delete(existingAssignment.id); toast.success('Mitarbeiter aus Planung entfernt'); });
+      optimisticUpdate(prev => prev.filter(a => a.id !== existingAssignment.id), async () => { await api.entities.Assignment.delete(existingAssignment.id); toast.success('Mitarbeiter aus Planung entfernt'); });
     } else if (destType === 'cell') {
-      optimisticUpdate(prev => prev.map(a => a.id === existingAssignment.id ? { ...a, project_id: destProjectId, date: destDateStr } : a), async () => { await base44.entities.Assignment.update(existingAssignment.id, { project_id: destProjectId, date: destDateStr }); toast.success('Mitarbeiter verschoben'); });
+      optimisticUpdate(prev => prev.map(a => a.id === existingAssignment.id ? { ...a, project_id: destProjectId, date: destDateStr } : a), async () => { await api.entities.Assignment.update(existingAssignment.id, { project_id: destProjectId, date: destDateStr }); toast.success('Mitarbeiter verschoben'); });
     } else if (destType === 'absence') {
-      optimisticUpdate(prev => prev.map(a => a.id === existingAssignment.id ? { ...a, assignment_type: destProjectId, date: destDateStr, project_id: null } : a), async () => { await base44.entities.Assignment.update(existingAssignment.id, { assignment_type: destProjectId, date: destDateStr, project_id: null }); toast.success('Als Abwesenheit markiert'); });
+      optimisticUpdate(prev => prev.map(a => a.id === existingAssignment.id ? { ...a, assignment_type: destProjectId, date: destDateStr, project_id: null } : a), async () => { await api.entities.Assignment.update(existingAssignment.id, { assignment_type: destProjectId, date: destDateStr, project_id: null }); toast.success('Als Abwesenheit markiert'); });
     } else if (destType === 'workshop') {
-      optimisticUpdate(prev => prev.map(a => a.id === existingAssignment.id ? { ...a, project_id: 'workshop', date: destDateStr } : a), async () => { await base44.entities.Assignment.update(existingAssignment.id, { project_id: 'workshop', date: destDateStr }); toast.success('Zur Werkstatt verschoben'); });
+      optimisticUpdate(prev => prev.map(a => a.id === existingAssignment.id ? { ...a, project_id: 'workshop', date: destDateStr } : a), async () => { await api.entities.Assignment.update(existingAssignment.id, { project_id: 'workshop', date: destDateStr }); toast.success('Zur Werkstatt verschoben'); });
     }
   };
 
@@ -792,7 +792,7 @@ export default function WeeklyPlanningEF() {
     
     setSubmitting(true);
     try {
-      await base44.entities.Employee.update(editingEmployee.id, {
+      await api.entities.Employee.update(editingEmployee.id, {
         ...form,
         apprentice_year: form.apprentice_year ? parseInt(form.apprentice_year) : null
       });
@@ -963,11 +963,11 @@ export default function WeeklyPlanningEF() {
                 weekStart={weekStart}
                 onDeleteAssignment={(assignmentId) => {
                   setAssignments(prev => prev.filter(a => a.id !== assignmentId));
-                  base44.entities.Assignment.delete(assignmentId).catch(() => loadData());
+                  api.entities.Assignment.delete(assignmentId).catch(() => loadData());
                 }}
                 onDeleteComment={(commentId) => {
                   setProjectComments(prev => prev.filter(c => c.id !== commentId));
-                  base44.entities.ProjectComment.delete(commentId).catch(() => loadData());
+                  api.entities.ProjectComment.delete(commentId).catch(() => loadData());
                 }}
               />
             </table>

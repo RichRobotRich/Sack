@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import {
   Car,
   Plus,
@@ -82,8 +82,8 @@ export default function VehicleManagement() {
     setPullDistance(0);
     try {
       const [data, empData] = await Promise.all([
-        base44.entities.Vehicle.list(),
-        base44.entities.Employee.filter({ is_active: true })
+        api.entities.Vehicle.list(),
+        api.entities.Employee.filter({ is_active: true })
       ]);
       setVehicles(data);
       setEmployees(empData.filter(e => e.employee_type === 'monteur'));
@@ -160,9 +160,9 @@ export default function VehicleManagement() {
       };
       
       if (editingVehicle) {
-        await base44.entities.Vehicle.update(editingVehicle.id, data);
+        await api.entities.Vehicle.update(editingVehicle.id, data);
       } else {
-        await base44.entities.Vehicle.create(data);
+        await api.entities.Vehicle.create(data);
       }
       
       setDialogOpen(false);
@@ -180,7 +180,7 @@ export default function VehicleManagement() {
     if (!deleteDialog.id) return;
     
     try {
-      await base44.entities.Vehicle.delete(deleteDialog.id);
+      await api.entities.Vehicle.delete(deleteDialog.id);
       setDeleteDialog({ open: false, id: null });
       loadData();
     } catch (error) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { Plus, Edit2, Trash2, Users, X, Check } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,7 +31,7 @@ export default function ColonnenTab({ employees }) {
   const loadCrews = async () => {
     setLoading(true);
     try {
-      const data = await base44.entities.Crew.list();
+      const data = await api.entities.Crew.list();
       setCrews(data);
     } catch (e) {
       console.error(e);
@@ -60,9 +60,9 @@ export default function ColonnenTab({ employees }) {
     if (!crewName.trim()) return;
     try {
       if (editingCrew) {
-        await base44.entities.Crew.update(editingCrew.id, { name: crewName.trim(), member_ids: selectedIds });
+        await api.entities.Crew.update(editingCrew.id, { name: crewName.trim(), member_ids: selectedIds });
       } else {
-        await base44.entities.Crew.create({ name: crewName.trim(), member_ids: selectedIds });
+        await api.entities.Crew.create({ name: crewName.trim(), member_ids: selectedIds });
       }
       setDialogOpen(false);
       loadCrews();
@@ -75,7 +75,7 @@ export default function ColonnenTab({ employees }) {
   const handleDelete = async () => {
     if (!deleteDialog.id) return;
     try {
-      await base44.entities.Crew.delete(deleteDialog.id);
+      await api.entities.Crew.delete(deleteDialog.id);
       setDeleteDialog({ open: false, id: null });
       loadCrews();
       toast.success('Kolonne gelöscht');

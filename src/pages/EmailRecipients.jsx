@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import {
   Mail,
   Plus,
@@ -76,7 +76,7 @@ export default function EmailRecipients() {
 
   const loadRoles = async () => {
     try {
-      const data = await base44.entities.Role.list();
+      const data = await api.entities.Role.list();
       setRoles(data.filter(r => r.is_active !== false));
     } catch (error) {
       console.error('Error loading roles:', error);
@@ -86,7 +86,7 @@ export default function EmailRecipients() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const data = await base44.entities.EmailRecipient.list();
+      const data = await api.entities.EmailRecipient.list();
       setRecipients(data);
     } catch (error) {
       console.error('Error loading recipients:', error);
@@ -101,9 +101,9 @@ export default function EmailRecipients() {
     setSubmitting(true);
     try {
       if (editingRecipient) {
-        await base44.entities.EmailRecipient.update(editingRecipient.id, form);
+        await api.entities.EmailRecipient.update(editingRecipient.id, form);
       } else {
-        await base44.entities.EmailRecipient.create(form);
+        await api.entities.EmailRecipient.create(form);
       }
       
       setDialogOpen(false);
@@ -120,7 +120,7 @@ export default function EmailRecipients() {
     if (!deleteDialog.id) return;
     
     try {
-      await base44.entities.EmailRecipient.delete(deleteDialog.id);
+      await api.entities.EmailRecipient.delete(deleteDialog.id);
       setDeleteDialog({ open: false, id: null });
       loadData();
     } catch (error) {

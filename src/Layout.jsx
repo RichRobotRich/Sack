@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import RouteAnimationWrapper from './components/RouteAnimationWrapper';
 import {
   Menu,
@@ -18,6 +18,7 @@ import {
   Settings,
 } from 'lucide-react';
 import { ALL_PAGES } from '@/lib/allPages';
+import { LOGO_URL } from '@/lib/branding';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -76,7 +77,7 @@ export default function Layout({ children, currentPageName }) {
 
   const loadUser = async () => {
     try {
-      const currentUser = await base44.auth.me();
+      const currentUser = await api.auth.me();
       setUser(currentUser);
       if (currentUser && !currentUser.full_name) {
         setShowNameDialog(true);
@@ -122,7 +123,7 @@ export default function Layout({ children, currentPageName }) {
 
   const loadUserRole = async () => {
      try {
-       const roles = await base44.entities.Role.filter({ is_active: true });
+       const roles = await api.entities.Role.filter({ is_active: true });
 
        let userCurrentRole = user.role_id ? roles.find(r => r.id === user.role_id) : null;
 
@@ -135,13 +136,13 @@ export default function Layout({ children, currentPageName }) {
          if (defaultRole) {
            userCurrentRole = defaultRole;
            // Rolle dem Benutzer zuweisen
-           await base44.auth.updateMe({ role_id: defaultRole.id });
+           await api.auth.updateMe({ role_id: defaultRole.id });
          }
        }
 
        // WICHTIG: Wenn Benutzer eine Admin-Rolle hat, aber user.role nicht 'admin' ist, korrigieren
        if (userCurrentRole && userCurrentRole.is_admin && user.role !== 'admin') {
-         await base44.auth.updateMe({ role: 'admin' });
+         await api.auth.updateMe({ role: 'admin' });
          // User-Objekt aktualisieren
          setUser({ ...user, role: 'admin' });
        }
@@ -157,7 +158,7 @@ export default function Layout({ children, currentPageName }) {
 
    const loadApprovalRules = async () => {
      try {
-       const rules = await base44.entities.LeaveApprovalRule.filter({ is_active: true });
+       const rules = await api.entities.LeaveApprovalRule.filter({ is_active: true });
        setApprovalRules(rules);
      } catch (error) {
        console.error('Error loading approval rules:', error);
@@ -170,7 +171,7 @@ export default function Layout({ children, currentPageName }) {
     
     setSaving(true);
     try {
-      await base44.auth.updateMe({ full_name: nameInput.trim() });
+      await api.auth.updateMe({ full_name: nameInput.trim() });
       setUser({ ...user, full_name: nameInput.trim() });
       setShowNameDialog(false);
     } catch (error) {
@@ -181,7 +182,7 @@ export default function Layout({ children, currentPageName }) {
   };
 
   const handleLogout = () => {
-    base44.auth.logout();
+    api.auth.logout();
   };
 
   const isApproved = user?.is_approved || false;
@@ -224,14 +225,14 @@ export default function Layout({ children, currentPageName }) {
       <div className="min-h-screen bg-[#f8f7f6] flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
           <img 
-            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69737e3a59f8e0a4378ab09e/2e519cc6f_Element14x.png" 
+            src={LOGO_URL} 
             alt="Leniger Logo" 
             className="h-16 w-auto mx-auto mb-6"
           />
           <h1 className="text-2xl font-bold text-[#1e3a5f] mb-2">Disposition</h1>
           <p className="text-gray-500 mb-6">Bitte melden Sie sich an, um fortzufahren.</p>
           <Button 
-            onClick={() => base44.auth.redirectToLogin()}
+            onClick={() => api.auth.redirectToLogin()}
             className="w-full bg-[#1e3a5f] hover:bg-[#1e3a5f]/90"
           >
             Anmelden
@@ -246,7 +247,7 @@ export default function Layout({ children, currentPageName }) {
       <div className="min-h-screen bg-[#f8f7f6] flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
           <img 
-            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69737e3a59f8e0a4378ab09e/2e519cc6f_Element14x.png" 
+            src={LOGO_URL} 
             alt="Leniger Logo" 
             className="h-16 w-auto mx-auto mb-6"
           />
@@ -315,7 +316,7 @@ export default function Layout({ children, currentPageName }) {
         {currentPageName === 'Dashboard' && <div className="w-8" />}
         <Link to={createPageUrl('Dashboard')} className="flex items-center gap-3 hover:opacity-70 transition-opacity select-none" style={{ WebkitUserSelect: 'none', userSelect: 'none' }}>
           <img 
-            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69737e3a59f8e0a4378ab09e/2e519cc6f_Element14x.png" 
+            src={LOGO_URL} 
             alt="Leniger Logo" 
             className="h-10 w-auto"
           />
@@ -342,7 +343,7 @@ export default function Layout({ children, currentPageName }) {
           <Link to={createPageUrl('Dashboard')} className="block p-6 border-b border-gray-100/50 dark:border-white/5 hover:opacity-70 transition-opacity">
             <div className="flex items-center gap-3">
               <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69737e3a59f8e0a4378ab09e/2e519cc6f_Element14x.png" 
+                src={LOGO_URL} 
                 alt="Leniger Logo" 
                 className="h-12 w-auto"
               />

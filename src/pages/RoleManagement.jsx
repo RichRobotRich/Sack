@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { Shield, Plus, Edit, Trash2, Check } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,7 +53,7 @@ export default function RoleManagement() {
   const loadRoles = async () => {
     setLoading(true);
     try {
-      const data = await base44.entities.Role.filter({ is_active: true });
+      const data = await api.entities.Role.filter({ is_active: true });
       setRoles(data);
     } catch (error) {
       console.error('Error loading roles:', error);
@@ -100,9 +100,9 @@ export default function RoleManagement() {
       };
 
       if (editingRole) {
-        await base44.entities.Role.update(editingRole.id, roleData);
+        await api.entities.Role.update(editingRole.id, roleData);
       } else {
-        await base44.entities.Role.create(roleData);
+        await api.entities.Role.create(roleData);
       }
       
       setDialogOpen(false);
@@ -119,7 +119,7 @@ export default function RoleManagement() {
     if (!roleToDelete) return;
     
     try {
-      await base44.entities.Role.update(roleToDelete.id, { is_active: false });
+      await api.entities.Role.update(roleToDelete.id, { is_active: false });
       setDeleteDialogOpen(false);
       setRoleToDelete(null);
       await loadRoles();

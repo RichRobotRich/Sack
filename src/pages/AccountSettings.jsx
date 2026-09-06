@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { User, Mail, Lock, Trash2, Save } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,7 +33,7 @@ export default function AccountSettings() {
 
   const loadUser = async () => {
     try {
-      const currentUser = await base44.auth.me();
+      const currentUser = await api.auth.me();
       setUser(currentUser);
       setNameForm(currentUser.full_name || '');
       setEmailForm(currentUser.email || '');
@@ -56,8 +56,8 @@ export default function AccountSettings() {
 
     setSaving(true);
     try {
-      await base44.auth.updateMe({ full_name: nameForm.trim() });
-      const freshUser = await base44.auth.me();
+      await api.auth.updateMe({ full_name: nameForm.trim() });
+      const freshUser = await api.auth.me();
       setUser(freshUser);
       setNameForm(freshUser.full_name || '');
       toast.success('Name gespeichert');
@@ -80,10 +80,10 @@ export default function AccountSettings() {
 
     setSaving(true);
     try {
-      await base44.auth.updateEmail(emailForm.trim());
+      await api.auth.updateEmail(emailForm.trim());
       toast.success('E-Mail-Adresse erfolgreich aktualisiert. Bitte überprüfen Sie Ihre E-Mails zur Bestätigung.');
       setTimeout(() => {
-        base44.auth.logout();
+        api.auth.logout();
       }, 2000);
     } catch (error) {
       console.error('Error updating email:', error);
@@ -111,7 +111,7 @@ export default function AccountSettings() {
 
     setSaving(true);
     try {
-      await base44.auth.updatePassword(passwordForm.current, passwordForm.new);
+      await api.auth.updatePassword(passwordForm.current, passwordForm.new);
       toast.success('Passwort erfolgreich aktualisiert');
       setPasswordForm({ current: '', new: '', confirm: '' });
     } catch (error) {
@@ -124,10 +124,10 @@ export default function AccountSettings() {
 
   const handleDeleteAccount = async () => {
     try {
-      await base44.auth.deleteAccount();
+      await api.auth.deleteAccount();
       toast.success('Konto wurde gelöscht');
       setTimeout(() => {
-        base44.auth.logout();
+        api.auth.logout();
       }, 1000);
     } catch (error) {
       console.error('Error deleting account:', error);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import {
@@ -58,11 +58,11 @@ export default function ClothingRequests() {
   const loadData = async () => {
     try {
       const [currentUser, allRequests, allReturns, clothingItemsData, allIssues] = await Promise.all([
-        base44.auth.me(),
-        base44.entities.ClothingRequest.list('-created_date'),
-        base44.entities.ClothingReturn.list('-created_date'),
-        base44.entities.ClothingItem.filter({ is_active: true }),
-        base44.entities.ClothingIssue.list('-issue_date')
+        api.auth.me(),
+        api.entities.ClothingRequest.list('-created_date'),
+        api.entities.ClothingReturn.list('-created_date'),
+        api.entities.ClothingItem.filter({ is_active: true }),
+        api.entities.ClothingIssue.list('-issue_date')
       ]);
 
       setUser(currentUser);
@@ -78,7 +78,7 @@ export default function ClothingRequests() {
 
       // Manuelle Ausgaben: employee_id über listAllUsers-Funktion holen (auth.me() gibt custom Felder nicht immer zurück)
       try {
-        const usersResponse = await base44.functions.invoke('listAllUsers', {});
+        const usersResponse = await api.functions.invoke('listAllUsers', {});
         const allUsers = usersResponse?.data?.users || [];
         const userEntity = allUsers.find(u => u.id === currentUser.id);
         const employeeId = userEntity?.employee_id || currentUser.employee_id;
@@ -158,14 +158,14 @@ export default function ClothingRequests() {
       setItems([{ clothing_item_id: '', quantity: 1 }]);
 
       // API call
-      await base44.entities.ClothingRequest.create({
+      await api.entities.ClothingRequest.create({
         employee_id: user.full_name || user.email,
         items: requestItems,
         status: 'eingereicht'
       });
 
       // E-Mail senden
-      const recipients = await base44.entities.EmailRecipient.filter({ 
+      const recipients = await api.entities.EmailRecipient.filter({ 
         is_active: true 
       });
 
@@ -186,7 +186,7 @@ export default function ClothingRequests() {
 
       try {
         for (const recipient of clothingRecipients) {
-          await base44.integrations.Core.SendEmail({
+          await api.integrations.Core.SendEmail({
             to: recipient.email,
             subject: `Arbeitskleidungsanfrage: ${user.display_name || user.full_name || user.email}`,
             body: emailBody
@@ -198,7 +198,7 @@ export default function ClothingRequests() {
 
       // Bestätigungs-E-Mail an Antragsteller
       try {
-        await base44.integrations.Core.SendEmail({
+        await api.integrations.Core.SendEmail({
           to: user.email,
           subject: 'Arbeitskleidungsanfrage erfolgreich eingereicht',
           body: `
@@ -237,7 +237,7 @@ Ihr Leniger Team
       abgelehnt: 'Abgelehnt'
       };
 
-      await base44.integrations.Core.SendEmail({
+      await api.integrations.Core.SendEmail({
       to: user.email,
       subject: `Arbeitskleidungsanfrage ${statusLabels[newStatus]}`,
       body: `
@@ -259,10 +259,10 @@ Ihr Leniger Team
     
     try {
       const request = requests.find(r => r.id === requestId);
-      await base44.entities.ClothingRequest.delete(requestId);
+      await api.entities.ClothingRequest.delete(requestId);
 
       // Bestätigungs-E-Mail an Antragsteller
-      await base44.integrations.Core.SendEmail({
+      await api.integrations.Core.SendEmail({
         to: user.email,
         subject: 'Arbeitskleidungsanfrage erfolgreich zurückgezogen',
         body: `
@@ -303,7 +303,7 @@ Ihr Leniger Team
         clothing_item_id: item.clothing_item_id
       }));
 
-      await base44.entities.ClothingReturn.create({
+      await api.entities.ClothingReturn.create({
         request_id: selectedRequest.id,
         employee_id: selectedRequest.employee_id,
         items: itemsWithIds,
@@ -312,11 +312,11 @@ Ihr Leniger Team
       });
 
       // Delete original request
-      await base44.entities.ClothingRequest.delete(selectedRequest.id);
+      await api.entities.ClothingRequest.delete(selectedRequest.id);
 
       // E-Mail-Benachrichtigung senden
       try {
-        const recipients = await base44.entities.EmailRecipient.filter({ 
+        const recipients = await api.entities.EmailRecipient.filter({ 
           is_active: true 
         });
         
@@ -326,7 +326,7 @@ Ihr Leniger Team
         
         for (const recipient of notificationRecipients) {
           try {
-            await base44.integrations.Core.SendEmail({
+            await api.integrations.Core.SendEmail({
               to: recipient.email,
               subject: 'Neue Rückgabeanfrage für Arbeitskleidung',
               body: `

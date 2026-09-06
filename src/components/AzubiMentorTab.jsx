@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { GraduationCap, UserCheck } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -31,7 +31,7 @@ export default function AzubiMentorTab({ employees, onEmployeesChange }) {
     setSaving(azubiId);
     try {
       const value = mentorId === '__none__' ? null : mentorId;
-      await base44.entities.Employee.update(azubiId, { mentor_id: value });
+      await api.entities.Employee.update(azubiId, { mentor_id: value });
       onEmployeesChange(prev =>
         prev.map(e => e.id === azubiId ? { ...e, mentor_id: value } : e)
       );

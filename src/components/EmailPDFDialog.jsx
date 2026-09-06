@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { Mail, Plus, Trash2, Send, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -62,7 +62,7 @@ export default function EmailPDFDialog({
       const dateFormatted = format(selectedDate, 'dd.MM.yyyy');
 
       // Rufe Backend-Funktion auf um Email zu versenden
-      const response = await base44.functions.invoke('sendDailyViewPDFEmail', {
+      const response = await api.functions.invoke('sendDailyViewPDFEmail', {
         emails: emailList,
         selectedDate: dateStr,
         emailContent: `Tageseinteilung für den ${dateFormatted}\n\nMit freundlichen Grüßen\nLeniger`,

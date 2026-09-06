@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { Sun } from 'lucide-react';
 import EarlyShiftOverview from '../components/EarlyShiftOverview';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -9,7 +9,7 @@ export default function EarlyShiftPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    base44.entities.Employee.list()
+    api.entities.Employee.list()
       .then(setEmployees)
       .finally(() => setLoading(false));
   }, []);

@@ -133,6 +133,10 @@ const profilesTable = (entity) => {
       { sql: '  id uuid primary key references auth.users(id) on delete cascade', comment: '' },
       { sql: '  email text not null unique', comment: '' },
       { sql: '  full_name text', comment: '' },
+      // role gehört nicht zum exportierten User-Schema, weil Base44 es als
+      // Systemfeld führte. Der Code prüft an mehreren Stellen user.role ===
+      // 'admin', also muss die Spalte hier mitwandern.
+      { sql: "  role text not null default 'user'", comment: "Systemrolle: 'admin' oder 'user'" },
       { sql: '  created_date timestamptz not null default now()', comment: '' },
       { sql: '  updated_date timestamptz not null default now()', comment: '' },
       { sql: '  created_by text', comment: '' },
@@ -143,6 +147,7 @@ const profilesTable = (entity) => {
     'create trigger profiles_set_updated_date before update on public.profiles',
     '  for each row execute function public.set_updated_date();',
     '',
+    "alter table public.profiles add constraint profiles_role_check check (role in ('admin', 'user'));",
     ...buildEnumChecks('profiles', entity.properties || {}),
   ].join('\n');
 };

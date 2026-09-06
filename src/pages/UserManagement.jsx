@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format } from 'date-fns';
 import {
   UserCog,
@@ -95,13 +95,13 @@ export default function UserManagement() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const me = await base44.auth.me();
+      const me = await api.auth.me();
       setCurrentUser(me);
       
       const [usersResponse, employeesData, rolesData] = await Promise.all([
-        base44.functions.invoke('listAllUsers', {}),
-        base44.entities.Employee.list(),
-        base44.entities.Role.filter({ is_active: true })
+        api.functions.invoke('listAllUsers', {}),
+        api.entities.Employee.list(),
+        api.entities.Role.filter({ is_active: true })
       ]);
       
       setUsers(usersResponse.data.users || []);
@@ -134,7 +134,7 @@ export default function UserManagement() {
       const assignedRole = roles.find(r => r.id === form.role_id);
       const isAdminRole = assignedRole?.is_admin || false;
       
-      await base44.functions.invoke('updateUser', {
+      await api.functions.invoke('updateUser', {
         user_id: editingUser.id,
         role_id: form.role_id || null,
         role: isAdminRole ? 'admin' : 'user',
@@ -168,9 +168,9 @@ export default function UserManagement() {
       };
 
       if (editingRole) {
-        await base44.entities.Role.update(editingRole.id, roleData);
+        await api.entities.Role.update(editingRole.id, roleData);
       } else {
-        await base44.entities.Role.create(roleData);
+        await api.entities.Role.create(roleData);
       }
       
       setRoleDialogOpen(false);
@@ -187,7 +187,7 @@ export default function UserManagement() {
     if (!roleToDelete) return;
     
     try {
-      await base44.entities.Role.update(roleToDelete.id, { is_active: false });
+      await api.entities.Role.update(roleToDelete.id, { is_active: false });
       setDeleteRoleDialogOpen(false);
       setRoleToDelete(null);
       await loadData();
@@ -209,7 +209,7 @@ export default function UserManagement() {
         }
       }
       
-      await base44.functions.invoke('updateUser', {
+      await api.functions.invoke('updateUser', {
         user_id: user.id,
         is_approved: true,
         role: role

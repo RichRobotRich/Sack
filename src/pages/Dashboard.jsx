@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { format } from 'date-fns';
@@ -40,16 +40,16 @@ export default function Dashboard() {
     setLoading(true);
     try {
       const [currentUser, projects, newsData, pollsData] = await Promise.all([
-        base44.auth.me(),
-        base44.entities.Project.filter({ status: 'aktiv' }),
-        base44.entities.News.filter({ is_active: true }, '-created_date'),
-        base44.entities.Poll.filter({ is_active: true }, '-created_date')
+        api.auth.me(),
+        api.entities.Project.filter({ status: 'aktiv' }),
+        api.entities.News.filter({ is_active: true }, '-created_date'),
+        api.entities.Poll.filter({ is_active: true }, '-created_date')
       ]);
 
       // User-Anzahl über Backend-Funktion laden (für alle verfügbar)
       let usersCount = 0;
       try {
-        const { data } = await base44.functions.invoke('getUserCount');
+        const { data } = await api.functions.invoke('getUserCount');
         usersCount = data.count;
       } catch (error) {
         console.error('Could not load user count:', error);
@@ -103,7 +103,7 @@ export default function Dashboard() {
         ];
       }
 
-      await base44.entities.Poll.update(pollId, { votes: updatedVotes });
+      await api.entities.Poll.update(pollId, { votes: updatedVotes });
       await loadDashboard();
     } catch (error) {
       console.error('Error voting:', error);

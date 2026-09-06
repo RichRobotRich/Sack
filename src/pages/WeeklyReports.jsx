@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format, startOfWeek, addDays, parseISO } from 'date-fns';
 import { de } from 'date-fns/locale';
 import {
@@ -98,10 +98,10 @@ export default function WeeklyReports() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const currentUser = await base44.auth.me();
+      const currentUser = await api.auth.me();
       const [reportsData, projectsData] = await Promise.all([
-        base44.entities.WeeklyReport.filter({ user_email: currentUser.email }, '-created_date'),
-        base44.entities.Project.filter({ status: 'aktiv' })
+        api.entities.WeeklyReport.filter({ user_email: currentUser.email }, '-created_date'),
+        api.entities.Project.filter({ status: 'aktiv' })
       ]);
       
       setUser(currentUser);
@@ -157,7 +157,7 @@ export default function WeeklyReports() {
     try {
       const totalHours = getTotalHours();
       
-      await base44.entities.WeeklyReport.create({
+      await api.entities.WeeklyReport.create({
         user_email: user.email,
         user_name: user.full_name || user.email,
         week_start: format(weekStart, 'yyyy-MM-dd'),
@@ -168,7 +168,7 @@ export default function WeeklyReports() {
       });
       
       // Bestätigungs-E-Mail an Benutzer
-      await base44.integrations.Core.SendEmail({
+      await api.integrations.Core.SendEmail({
         to: user.email,
         subject: 'Wochenbericht erfolgreich eingereicht',
         body: `
@@ -214,10 +214,10 @@ Ihr Leniger Team
     if (!reportToWithdraw) return;
     
     try {
-      await base44.entities.WeeklyReport.delete(reportToWithdraw.id);
+      await api.entities.WeeklyReport.delete(reportToWithdraw.id);
 
       // Bestätigungs-E-Mail an Benutzer
-      await base44.integrations.Core.SendEmail({
+      await api.integrations.Core.SendEmail({
         to: user.email,
         subject: 'Wochenbericht erfolgreich zurückgezogen',
         body: `
@@ -253,7 +253,7 @@ Ihr Leniger Team
       abgelehnt: '✗'
     };
 
-    await base44.integrations.Core.SendEmail({
+    await api.integrations.Core.SendEmail({
       to: user.email,
       subject: `Wochenbericht ${statusLabels[newStatus]} - KW ${format(parseISO(report.week_start), 'I')}`,
       body: `

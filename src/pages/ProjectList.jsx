@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import {
@@ -37,8 +37,8 @@ export default function ProjectList() {
   const loadData = async () => {
     try {
       const [projectsData, employeesData] = await Promise.all([
-        base44.entities.Project.list(),
-        base44.entities.Employee.list()
+        api.entities.Project.list(),
+        api.entities.Employee.list()
       ]);
       setProjects(projectsData);
       setEmployees(employeesData);

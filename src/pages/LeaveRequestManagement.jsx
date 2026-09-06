@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format, differenceInDays, isWeekend, parseISO } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { isPublicHoliday } from '@/utils/publicHolidays';
@@ -194,13 +194,13 @@ function RequestManagementPanel({ requestType }) {
   const loadData = async () => {
     setLoading(true);
     try {
-      const currentUser = await base44.auth.me();
+      const currentUser = await api.auth.me();
 
       const [allRequests, allRoles, allRules, usersResponse] = await Promise.all([
-        base44.entities.LeaveRequest.filter({ request_type: requestType }, '-created_date'),
-        base44.entities.Role.filter({ is_active: true }),
-        base44.entities.LeaveApprovalRule.filter({ is_active: true }),
-        base44.functions.invoke('listAllUsers', {})
+        api.entities.LeaveRequest.filter({ request_type: requestType }, '-created_date'),
+        api.entities.Role.filter({ is_active: true }),
+        api.entities.LeaveApprovalRule.filter({ is_active: true }),
+        api.functions.invoke('listAllUsers', {})
       ]);
 
       setUser(currentUser);
@@ -257,7 +257,7 @@ function RequestManagementPanel({ requestType }) {
     if (!ruleForm.user_email || ruleForm.can_view_roles.length === 0) return;
     setSubmitting(true);
     try {
-      await base44.entities.LeaveApprovalRule.create({
+      await api.entities.LeaveApprovalRule.create({
         user_email: ruleForm.user_email,
         can_view_roles: ruleForm.can_view_roles,
         is_active: true
@@ -276,7 +276,7 @@ function RequestManagementPanel({ requestType }) {
   const handleDeleteRule = async (ruleId) => {
     if (!confirm('Regel wirklich löschen?')) return;
     try {
-      await base44.entities.LeaveApprovalRule.update(ruleId, { is_active: false });
+      await api.entities.LeaveApprovalRule.update(ruleId, { is_active: false });
       await loadData();
     } catch (error) {
       console.error('Error deleting rule:', error);
@@ -305,7 +305,7 @@ function RequestManagementPanel({ requestType }) {
         const originalRequestId = extractOriginalRequestId(selectedRequest.notes);
         if (originalRequestId) {
           // Lade Original-Request
-          const allRequests = await base44.entities.LeaveRequest.list();
+          const allRequests = await api.entities.LeaveRequest.list();
           const originalRequest = allRequests.find(r => r.id === originalRequestId);
           
           if (originalRequest && originalRequest.status === 'genehmigt') {
@@ -333,19 +333,19 @@ function RequestManagementPanel({ requestType }) {
             // Lösche Assignments für die aufgehobenen Tage
             const requesterUser = users.find(u => u.id === originalRequest.created_by_id);
             if (requesterUser?.employee_id) {
-              const allAssignments = await base44.entities.Assignment.list();
+              const allAssignments = await api.entities.Assignment.list();
               const assignmentsToDelete = allAssignments.filter(a =>
                 a.employee_id === requesterUser.employee_id &&
                 daysToRevoke.has(a.date)
               );
               for (const assignment of assignmentsToDelete) {
-                await base44.entities.Assignment.delete(assignment.id);
+                await api.entities.Assignment.delete(assignment.id);
               }
             }
             
             if (remainingWorkdays.length === 0) {
               // Alle Tage aufgehoben: Original-Request löschen
-              await base44.entities.LeaveRequest.delete(originalRequestId);
+              await api.entities.LeaveRequest.delete(originalRequestId);
             } else {
               // Finde zusammenhängende Blöcke von Arbeitstagen
               const blocks = [];
@@ -367,19 +367,19 @@ function RequestManagementPanel({ requestType }) {
               
               if (blocks.length === 1) {
                 // Ein Block: Update Original-Request
-                await base44.entities.LeaveRequest.update(originalRequestId, {
+                await api.entities.LeaveRequest.update(originalRequestId, {
                   start_date: blocks[0][0],
                   end_date: blocks[0][blocks[0].length - 1]
                 });
               } else {
                 // Mehrere Blöcke: Update ersten Block, erstelle neue für die anderen
-                await base44.entities.LeaveRequest.update(originalRequestId, {
+                await api.entities.LeaveRequest.update(originalRequestId, {
                   start_date: blocks[0][0],
                   end_date: blocks[0][blocks[0].length - 1]
                 });
                 
                 for (let i = 1; i < blocks.length; i++) {
-                  await base44.entities.LeaveRequest.create({
+                  await api.entities.LeaveRequest.create({
                     employee_id: originalRequest.employee_id,
                     employee_name: originalRequest.employee_name,
                     requester_role_id: originalRequest.requester_role_id,
@@ -398,7 +398,7 @@ function RequestManagementPanel({ requestType }) {
                       employee_id: requesterUser.employee_id,
                       assignment_type: 'urlaub'
                     }));
-                    await base44.entities.Assignment.bulkCreate(assignmentsToCreate);
+                    await api.entities.Assignment.bulkCreate(assignmentsToCreate);
                   }
                 }
               }
@@ -410,10 +410,10 @@ function RequestManagementPanel({ requestType }) {
       // Wenn Aufhebungs-Request genehmigt: lösche ihn nach Verarbeitung
       if (newStatus === 'genehmigt' && selectedRequest.notes?.includes('__')) {
         // Lösche den Aufhebungs-Request selbst
-        await base44.entities.LeaveRequest.delete(selectedRequest.id);
+        await api.entities.LeaveRequest.delete(selectedRequest.id);
       } else {
         // Normale Requests: update status
-        await base44.entities.LeaveRequest.update(selectedRequest.id, {
+        await api.entities.LeaveRequest.update(selectedRequest.id, {
           status: newStatus,
           notes: notes,
           approved_by: user.full_name || user.email,
@@ -443,7 +443,7 @@ function RequestManagementPanel({ requestType }) {
             }
           }
           if (assignmentsToCreate.length > 0) {
-            await base44.entities.Assignment.bulkCreate(assignmentsToCreate);
+            await api.entities.Assignment.bulkCreate(assignmentsToCreate);
           }
         }
       }
@@ -461,7 +461,7 @@ function RequestManagementPanel({ requestType }) {
             ? 'Ihr Urlaubsantrag'
             : 'Ihre Krankmeldung';
 
-          await base44.integrations.Core.SendEmail({
+          await api.integrations.Core.SendEmail({
             to: requester.email,
             subject: subject,
             body: `

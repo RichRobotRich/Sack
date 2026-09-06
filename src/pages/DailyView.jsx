@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format, getDay, startOfWeek as dateFnsStartOfWeek } from 'date-fns';
 import { isPublicHoliday, getPublicHolidayName } from '@/utils/publicHolidays';
 import { de } from 'date-fns/locale';
@@ -91,7 +91,7 @@ export default function DailyView() {
 
     let bridgeDaySet = new Set();
     try {
-      const bds = await base44.entities.BridgeDay.list();
+      const bds = await api.entities.BridgeDay.list();
       bridgeDaySet = new Set(bds.map(d => d.date));
     } catch {}
 
@@ -124,7 +124,7 @@ export default function DailyView() {
     let firstDayAssignments = [];
     if (!isFirstWorkday) {
       try {
-        firstDayAssignments = await base44.entities.Assignment.filter({ date: firstWorkday });
+        firstDayAssignments = await api.entities.Assignment.filter({ date: firstWorkday });
       } catch {}
     }
 
@@ -167,7 +167,7 @@ export default function DailyView() {
       if (!vehicleToAssign) continue;
 
       assignment.vehicle_id = vehicleToAssign.id;
-      dbUpdates.push(base44.entities.Assignment.update(assignment.id, { vehicle_id: vehicleToAssign.id }));
+      dbUpdates.push(api.entities.Assignment.update(assignment.id, { vehicle_id: vehicleToAssign.id }));
     }
 
     if (dbUpdates.length > 0) {
@@ -182,13 +182,13 @@ export default function DailyView() {
     try {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
       const [assignmentsData, employeesData, projectsData, vehiclesData, leaveRequestsData, tempWorkersData, tempAssignmentsData] = await Promise.all([
-        base44.entities.Assignment.filter({ date: dateStr }),
-        base44.entities.Employee.list(),
-        base44.entities.Project.list(),
-        base44.entities.Vehicle.list(),
-        base44.entities.LeaveRequest.filter({ status: 'genehmigt' }),
-        base44.entities.TempWorker.filter({ is_active: true }),
-        base44.entities.TempAssignment.list(),
+        api.entities.Assignment.filter({ date: dateStr }),
+        api.entities.Employee.list(),
+        api.entities.Project.list(),
+        api.entities.Vehicle.list(),
+        api.entities.LeaveRequest.filter({ status: 'genehmigt' }),
+        api.entities.TempWorker.filter({ is_active: true }),
+        api.entities.TempAssignment.list(),
       ]);
       
       // Filter out EF projects and EF employees
@@ -222,7 +222,7 @@ export default function DailyView() {
       if (isNewDate) {
         const toReset = assignmentsData.filter(a => a.vehicle_id && !a._from_leave_request);
         if (toReset.length > 0) {
-          await Promise.all(toReset.map(a => base44.entities.Assignment.update(a.id, { vehicle_id: null }))).catch(() => {});
+          await Promise.all(toReset.map(a => api.entities.Assignment.update(a.id, { vehicle_id: null }))).catch(() => {});
           toReset.forEach(a => { a.vehicle_id = null; });
         }
 
@@ -251,7 +251,7 @@ export default function DailyView() {
           futures.push(format(d, 'yyyy-MM-dd'));
         }
         const futureData = await Promise.all(
-          futures.map(d => base44.entities.Assignment.filter({ date: d }))
+          futures.map(d => api.entities.Assignment.filter({ date: d }))
         );
         setFutureAssignments(futureData.flat());
       } else {
@@ -482,8 +482,8 @@ export default function DailyView() {
       const prevDateStr = format(previousDate, 'yyyy-MM-dd');
 
       const [prevAssignments, allEmployees] = await Promise.all([
-        base44.entities.Assignment.filter({ date: prevDateStr }),
-        employees.length > 0 ? Promise.resolve(employees) : base44.entities.Employee.list()
+        api.entities.Assignment.filter({ date: prevDateStr }),
+        employees.length > 0 ? Promise.resolve(employees) : api.entities.Employee.list()
       ]);
 
       const getEmpOvernight = (empId) => {
@@ -522,7 +522,7 @@ export default function DailyView() {
           if (localAssignments.some(a => a.vehicle_id === vehicleId)) continue;
           const target = todayGroup.find(a => !a.vehicle_id) || todayGroup[0];
           if (!target) continue;
-          updates.push(base44.entities.Assignment.update(target.id, { vehicle_id: vehicleId }));
+          updates.push(api.entities.Assignment.update(target.id, { vehicle_id: vehicleId }));
           target.vehicle_id = vehicleId;
         }
       }
@@ -548,7 +548,7 @@ export default function DailyView() {
 
     let bridgeDaySet = new Set();
     try {
-      const bds = await base44.entities.BridgeDay.list();
+      const bds = await api.entities.BridgeDay.list();
       bridgeDaySet = new Set(bds.map(d => d.date));
     } catch {}
 
@@ -673,8 +673,8 @@ export default function DailyView() {
 
     (async () => {
       try {
-        if (prevVehicleOwners.length > 0) await Promise.all(prevVehicleOwners.map(id => base44.entities.Assignment.update(id, { vehicle_id: null })));
-        if (target) await base44.entities.Assignment.update(target.id, { vehicle_id: vehicleId });
+        if (prevVehicleOwners.length > 0) await Promise.all(prevVehicleOwners.map(id => api.entities.Assignment.update(id, { vehicle_id: null })));
+        if (target) await api.entities.Assignment.update(target.id, { vehicle_id: vehicleId });
       } catch {
         toast.error('Fehler beim Speichern – Daten werden neu geladen');
         loadData();
@@ -694,7 +694,7 @@ export default function DailyView() {
       const owners = assignments.filter(a => a.vehicle_id === vehicleId).map(a => a.id);
       setAssignments(prev => prev.map(a => owners.includes(a.id) ? { ...a, vehicle_id: null } : a));
       toast.success('Fahrzeug freigegeben');
-      Promise.all(owners.map(id => base44.entities.Assignment.update(id, { vehicle_id: null }))).catch(() => { toast.error('Fehler'); loadData(); });
+      Promise.all(owners.map(id => api.entities.Assignment.update(id, { vehicle_id: null }))).catch(() => { toast.error('Fehler'); loadData(); });
       return;
     }
 
@@ -727,8 +727,8 @@ export default function DailyView() {
 
       (async () => {
         try {
-          if (prevOwners.length > 0) await Promise.all(prevOwners.map(id => base44.entities.Assignment.update(id, { vehicle_id: null })));
-          await base44.entities.Assignment.update(targetAssignment.id, { vehicle_id: vehicleId });
+          if (prevOwners.length > 0) await Promise.all(prevOwners.map(id => api.entities.Assignment.update(id, { vehicle_id: null })));
+          await api.entities.Assignment.update(targetAssignment.id, { vehicle_id: vehicleId });
         } catch {
           toast.error('Fehler beim Zuweisen');
           loadData();
@@ -779,7 +779,7 @@ export default function DailyView() {
               let today = new Date();
               let bridgeDaySet = new Set();
               try {
-                const bds = await base44.entities.BridgeDay.list();
+                const bds = await api.entities.BridgeDay.list();
                 bridgeDaySet = new Set(bds.map(d => d.date));
               } catch {}
               let safety = 0;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format, startOfWeek } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { addDays, subDays } from 'date-fns';
@@ -433,7 +433,7 @@ export default function WeeklyPlanningTableBody({
                 }}
                 onBlur={async () => {
                   try {
-                    await base44.entities.Project.update(project.id, { lead_assembler: project.lead_assembler });
+                    await api.entities.Project.update(project.id, { lead_assembler: project.lead_assembler });
                   } catch (error) {
                     console.error('Error updating lead assembler:', error);
                   }
@@ -745,7 +745,7 @@ export default function WeeklyPlanningTableBody({
                                  }}
                                  onBlur={async () => {
                                  try {
-                                 await base44.entities.Project.update(project.id, { lead_assembler: project.lead_assembler });
+                                 await api.entities.Project.update(project.id, { lead_assembler: project.lead_assembler });
                                  } catch (error) {
                                  console.error('Error updating lead assembler:', error);
                                  }

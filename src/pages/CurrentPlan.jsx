@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format, addDays, isMonday, isTuesday, isWednesday, isThursday, isFriday } from 'date-fns';
 import { isPublicHoliday } from '@/utils/publicHolidays';
 import { de } from 'date-fns/locale';
@@ -83,17 +83,17 @@ export default function CurrentPlan() {
      // Zuerst Brückentage laden, damit getDisplayDate sie berücksichtigen kann
      let bridgeDaySet = new Set();
      try {
-       const bds = await base44.entities.BridgeDay.list();
+       const bds = await api.entities.BridgeDay.list();
        bridgeDaySet = new Set(bds.map(d => d.date));
      } catch {}
 
      const dateToLoad = getDisplayDate(bridgeDaySet);
      const [user, assignmentsData, employeesData, projectsData, vehiclesData] = await Promise.all([
-       base44.auth.me(),
-       base44.entities.Assignment.filter({ date: format(dateToLoad, 'yyyy-MM-dd') }),
-       base44.entities.Employee.list(),
-       base44.entities.Project.list(),
-       base44.entities.Vehicle.list()
+       api.auth.me(),
+       api.entities.Assignment.filter({ date: format(dateToLoad, 'yyyy-MM-dd') }),
+       api.entities.Employee.list(),
+       api.entities.Project.list(),
+       api.entities.Vehicle.list()
      ]);
 
      setCurrentUser(user);
@@ -108,7 +108,7 @@ export default function CurrentPlan() {
        }
      }
      const futureResults = await Promise.all(
-       futureDates.map(date => base44.entities.Assignment.filter({ date }))
+       futureDates.map(date => api.entities.Assignment.filter({ date }))
      );
      setFutureAssignments(futureResults.flat());
 

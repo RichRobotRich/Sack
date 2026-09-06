@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import {
   Users,
   Plus,
@@ -107,7 +107,7 @@ export default function EmployeeManagement() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const data = await base44.entities.Employee.list();
+      const data = await api.entities.Employee.list();
       setEmployees(data);
     } catch (error) {
       console.error('Error loading employees:', error);
@@ -194,9 +194,9 @@ export default function EmployeeManagement() {
       };
       
       if (editingEmployee) {
-        await base44.entities.Employee.update(editingEmployee.id, data);
+        await api.entities.Employee.update(editingEmployee.id, data);
       } else {
-        await base44.entities.Employee.create(data);
+        await api.entities.Employee.create(data);
       }
 
       // Wenn Azubi: vacation_periods auf alle anderen Azubis übertragen
@@ -206,7 +206,7 @@ export default function EmployeeManagement() {
         );
         await Promise.all(
           allAzubis.map(azubi =>
-            base44.entities.Employee.update(azubi.id, { vacation_periods: form.vacation_periods })
+            api.entities.Employee.update(azubi.id, { vacation_periods: form.vacation_periods })
           )
         );
       }
@@ -226,7 +226,7 @@ export default function EmployeeManagement() {
     if (!deleteDialog.id) return;
     
     try {
-      await base44.entities.Employee.delete(deleteDialog.id);
+      await api.entities.Employee.delete(deleteDialog.id);
       setDeleteDialog({ open: false, id: null });
       loadData();
     } catch (error) {

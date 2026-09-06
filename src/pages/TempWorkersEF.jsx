@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format, startOfWeek, addWeeks, getWeek, addDays } from 'date-fns';
 import { de } from 'date-fns/locale';
 import jsPDF from 'jspdf';
@@ -69,10 +69,10 @@ export default function TempWorkersEF() {
     setLoading(true);
     try {
       const [workersData, assignmentsData, projectsData, rowsData] = await Promise.all([
-        base44.entities.TempWorker.filter({ is_active: true, is_ef: true }),
-        base44.entities.TempAssignment.list(),
-        base44.entities.Project.filter({ status: 'aktiv', is_ef_project: true }),
-        base44.entities.TempWorkerProjectRow.list()
+        api.entities.TempWorker.filter({ is_active: true, is_ef: true }),
+        api.entities.TempAssignment.list(),
+        api.entities.Project.filter({ status: 'aktiv', is_ef_project: true }),
+        api.entities.TempWorkerProjectRow.list()
       ]);
       
       // Filter nur EF-Projekt-Zeilen
@@ -109,7 +109,7 @@ export default function TempWorkersEF() {
     if (!selectedProject) return;
     
     try {
-      await base44.entities.TempWorkerProjectRow.create({
+      await api.entities.TempWorkerProjectRow.create({
         project_id: selectedProject,
         notes: ''
       });
@@ -123,7 +123,7 @@ export default function TempWorkersEF() {
 
   const handleRemoveProjectRow = async (rowId) => {
     try {
-      await base44.entities.TempWorkerProjectRow.delete(rowId);
+      await api.entities.TempWorkerProjectRow.delete(rowId);
       loadData();
     } catch (error) {
       console.error('Error removing project row:', error);
@@ -155,14 +155,14 @@ export default function TempWorkersEF() {
       
       for (const assignment of existingAssignments) {
         if (!selectedWorkers.includes(assignment.temp_worker_id)) {
-          await base44.entities.TempAssignment.delete(assignment.id);
+          await api.entities.TempAssignment.delete(assignment.id);
         }
       }
       
       for (const workerId of selectedWorkers) {
         const exists = existingAssignments.find(a => a.temp_worker_id === workerId);
         if (!exists) {
-          await base44.entities.TempAssignment.create({
+          await api.entities.TempAssignment.create({
             temp_worker_id: workerId,
             project_id: projectId,
             week_start: weekStr,
@@ -194,7 +194,7 @@ export default function TempWorkersEF() {
 
   const handleSaveNotes = async () => {
     try {
-      await base44.entities.TempWorkerProjectRow.update(editingNotes.projectId, {
+      await api.entities.TempWorkerProjectRow.update(editingNotes.projectId, {
         notes: editingNotes.notes
       });
       setNotesDialogOpen(false);
@@ -306,9 +306,9 @@ export default function TempWorkersEF() {
     
     try {
       if (editingWorker) {
-        await base44.entities.TempWorker.update(editingWorker.id, workerForm);
+        await api.entities.TempWorker.update(editingWorker.id, workerForm);
       } else {
-        await base44.entities.TempWorker.create({ ...workerForm, is_active: true });
+        await api.entities.TempWorker.create({ ...workerForm, is_active: true });
       }
       setWorkerDialogOpen(false);
       loadData();
@@ -319,7 +319,7 @@ export default function TempWorkersEF() {
 
   const handleDeactivateWorker = async (workerId) => {
     try {
-      await base44.entities.TempWorker.update(workerId, { is_active: false });
+      await api.entities.TempWorker.update(workerId, { is_active: false });
       loadData();
     } catch (error) {
       console.error('Error deactivating worker:', error);
@@ -329,7 +329,7 @@ export default function TempWorkersEF() {
   const handleRemoveWorkerFromWeek = async (assignmentId, e) => {
     e.stopPropagation();
     try {
-      await base44.entities.TempAssignment.delete(assignmentId);
+      await api.entities.TempAssignment.delete(assignmentId);
       loadData();
     } catch (error) {
       console.error('Error removing worker from week:', error);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import {
@@ -103,8 +103,8 @@ export default function ProjectManagement() {
     setLoading(true);
     try {
       const [projectsData, employeesData] = await Promise.all([
-        base44.entities.Project.list(),
-        base44.entities.Employee.filter({ employee_type: 'projektleiter' })
+        api.entities.Project.list(),
+        api.entities.Employee.filter({ employee_type: 'projektleiter' })
       ]);
       setProjects(projectsData);
       setEmployees(employeesData);
@@ -197,9 +197,9 @@ export default function ProjectManagement() {
       };
       
       if (editingProject) {
-        await base44.entities.Project.update(editingProject.id, data);
+        await api.entities.Project.update(editingProject.id, data);
       } else {
-        await base44.entities.Project.create(data);
+        await api.entities.Project.create(data);
       }
       
       setDialogOpen(false);
@@ -217,7 +217,7 @@ export default function ProjectManagement() {
     if (!deleteDialog.id) return;
     
     try {
-      await base44.entities.Project.delete(deleteDialog.id);
+      await api.entities.Project.delete(deleteDialog.id);
       setDeleteDialog({ open: false, id: null });
       loadData();
     } catch (error) {

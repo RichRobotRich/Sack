@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format, differenceInDays, parseISO, isWeekend } from 'date-fns';
 import { isPublicHoliday } from '@/utils/publicHolidays';
 import { de } from 'date-fns/locale';
@@ -70,8 +70,8 @@ export default function SickReports() {
 
   const loadData = async () => {
     try {
-      const currentUser = await base44.auth.me();
-      const employees = await base44.entities.Employee.list();
+      const currentUser = await api.auth.me();
+      const employees = await api.entities.Employee.list();
 
       // Find linked employee via employee_id stored on user profile
       const linkedEmployee = currentUser.employee_id
@@ -84,13 +84,13 @@ export default function SickReports() {
       let requests;
       if (linkedEmployee) {
         // Only load requests for the linked employee
-        requests = await base44.entities.LeaveRequest.filter({
+        requests = await api.entities.LeaveRequest.filter({
           request_type: 'krankmeldung',
           employee_id: linkedEmployee.id
         }, '-created_date');
       } else {
         // Only load requests created by this user
-        requests = await base44.entities.LeaveRequest.filter({
+        requests = await api.entities.LeaveRequest.filter({
           request_type: 'krankmeldung',
           created_by: currentUser.email
         }, '-created_date');
@@ -110,7 +110,7 @@ export default function SickReports() {
 
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await api.integrations.Core.UploadFile({ file });
       setForm({ ...form, attachment: file, attachment_url: file_url });
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -123,11 +123,11 @@ export default function SickReports() {
     if (!confirm('Möchten Sie diese Krankmeldung wirklich zurückziehen?')) return;
 
     try {
-      await base44.entities.LeaveRequest.delete(request.id);
+      await api.entities.LeaveRequest.delete(request.id);
       await loadData();
 
       // E-Mail senden
-      const recipients = await base44.entities.EmailRecipient.filter({ 
+      const recipients = await api.entities.EmailRecipient.filter({ 
         is_active: true 
       });
 
@@ -151,7 +151,7 @@ Zurückgezogen am: ${format(new Date(), 'd.M.yyyy HH:mm')} Uhr
 
       try {
         for (const recipient of krankmeldungRecipients) {
-          await base44.integrations.Core.SendEmail({
+          await api.integrations.Core.SendEmail({
             to: recipient.email,
             subject: `Krankmeldung zurückgezogen: ${request.employee_name || employee?.full_name || request.employee_id || ''}`,
             body: emailBody
@@ -163,7 +163,7 @@ Zurückgezogen am: ${format(new Date(), 'd.M.yyyy HH:mm')} Uhr
 
       // Bestätigungs-E-Mail an Antragsteller
       try {
-        await base44.integrations.Core.SendEmail({
+        await api.integrations.Core.SendEmail({
           to: user.email,
           subject: 'Krankmeldung erfolgreich zurückgezogen',
           body: `
@@ -217,7 +217,7 @@ Ihr Leniger Team
       setForm({ start_date: new Date(), end_date: new Date(), reason: '', attachment: null, attachment_url: null });
 
       // API call
-      await base44.entities.LeaveRequest.create({
+      await api.entities.LeaveRequest.create({
         employee_id: employeeId,
         employee_name: employeeName,
         requester_role_id: user.role_id,
@@ -230,7 +230,7 @@ Ihr Leniger Team
       });
 
       // E-Mail senden
-      const recipients = await base44.entities.EmailRecipient.filter({ 
+      const recipients = await api.entities.EmailRecipient.filter({ 
         is_active: true 
       });
 
@@ -253,7 +253,7 @@ Ihr Leniger Team
 
       try {
         for (const recipient of krankmeldungRecipients) {
-          await base44.integrations.Core.SendEmail({
+          await api.integrations.Core.SendEmail({
             to: recipient.email,
             subject: `Krankmeldung: ${user.display_name || user.full_name || user.email}`,
             body: emailBody
@@ -265,7 +265,7 @@ Ihr Leniger Team
 
       // Bestätigungs-E-Mail an Antragsteller
       try {
-        await base44.integrations.Core.SendEmail({
+        await api.integrations.Core.SendEmail({
           to: user.email,
           subject: 'Krankmeldung erfolgreich eingereicht',
           body: `
@@ -306,7 +306,7 @@ Ihr Leniger Team
 
       const days = countWorkdays(new Date(request.start_date), new Date(request.end_date));
 
-      await base44.integrations.Core.SendEmail({
+      await api.integrations.Core.SendEmail({
       to: user.email,
       subject: `Krankmeldung ${statusLabels[newStatus]} - ${format(new Date(request.start_date), 'd.M.yyyy')}`,
       body: `

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format, eachDayOfInterval, parseISO, isWeekend } from 'date-fns';
 import { isPublicHoliday } from '../utils/publicHolidays';
 import { ChevronDown, Check } from 'lucide-react';
@@ -54,8 +54,8 @@ export default function BulkLeaveEditor({ employees, year, onSaved, currentUser,
       // --- LÖSCHEN-Modus ---
       if (selectedType === 'loeschen') {
         const [existingAssignments, existingLeaveReqs] = await Promise.all([
-          base44.entities.Assignment.filter({ employee_id: selectedEmployee.id }),
-          base44.entities.LeaveRequest.filter({ employee_id: selectedEmployee.id }),
+          api.entities.Assignment.filter({ employee_id: selectedEmployee.id }),
+          api.entities.LeaveRequest.filter({ employee_id: selectedEmployee.id }),
         ]);
 
         const assignmentTypes = ['urlaub', 'krank', 'beurlaubung', 'schule', 'tbz', 'pruefung', 'override_leer'];
@@ -71,8 +71,8 @@ export default function BulkLeaveEditor({ employees, year, onSaved, currentUser,
         );
 
         await Promise.all([
-          ...toDeleteAssign.map(a => base44.entities.Assignment.delete(a.id)),
-          ...overlappingLeaveReqs.map(r => base44.entities.LeaveRequest.delete(r.id)),
+          ...toDeleteAssign.map(a => api.entities.Assignment.delete(a.id)),
+          ...overlappingLeaveReqs.map(r => api.entities.LeaveRequest.delete(r.id)),
         ]);
 
         // Für überlappende Multi-Day-Requests: Teile außerhalb des Löschzeitraums neu anlegen
@@ -90,7 +90,7 @@ export default function BulkLeaveEditor({ employees, year, onSaved, currentUser,
             afterStart.setDate(afterStart.getDate() + 1);
             splits.push({ ...req, start_date: format(afterStart, 'yyyy-MM-dd') });
           }
-          await Promise.all(splits.map(split => base44.entities.LeaveRequest.create({
+          await Promise.all(splits.map(split => api.entities.LeaveRequest.create({
             employee_id: split.employee_id,
             employee_name: split.employee_name,
             request_type: split.request_type,
@@ -117,7 +117,7 @@ export default function BulkLeaveEditor({ employees, year, onSaved, currentUser,
 
       // --- NORMALER Eintrag-Modus ---
       // Delete existing assignments for this period
-      const existingAssignments = await base44.entities.Assignment.filter({
+      const existingAssignments = await api.entities.Assignment.filter({
         employee_id: selectedEmployee.id,
       });
 
@@ -127,7 +127,7 @@ export default function BulkLeaveEditor({ employees, year, onSaved, currentUser,
       });
 
       // Delete old ones
-      await Promise.all(toDelete.map(a => base44.entities.Assignment.delete(a.id)));
+      await Promise.all(toDelete.map(a => api.entities.Assignment.delete(a.id)));
 
       // Create new assignments – for urlaub/krank only on working days (no weekends, no holidays)
       const assignments = days
@@ -143,14 +143,14 @@ export default function BulkLeaveEditor({ employees, year, onSaved, currentUser,
           assignment_type: selectedType,
         }));
 
-      await base44.entities.Assignment.bulkCreate(assignments);
+      await api.entities.Assignment.bulkCreate(assignments);
 
       // For urlaub/krank: also create LeaveRequests
       if (selectedType === 'urlaub' || selectedType === 'krank') {
         const requestType = selectedType === 'urlaub' ? 'urlaub' : 'krankmeldung';
         
         // Delete existing single-day leave requests in this range
-        const existingLeaveReqs = await base44.entities.LeaveRequest.filter({
+        const existingLeaveReqs = await api.entities.LeaveRequest.filter({
           employee_id: selectedEmployee.id,
         });
 
@@ -160,10 +160,10 @@ export default function BulkLeaveEditor({ employees, year, onSaved, currentUser,
           return rStart >= start && rEnd <= end && r.notes === '__manual_overview__';
         });
 
-        await Promise.all(toDeleteLeave.map(r => base44.entities.LeaveRequest.delete(r.id)));
+        await Promise.all(toDeleteLeave.map(r => api.entities.LeaveRequest.delete(r.id)));
 
         // Create one LeaveRequest for the entire range
-        await base44.entities.LeaveRequest.create({
+        await api.entities.LeaveRequest.create({
           employee_id: selectedEmployee.id,
           employee_name: selectedEmployee.full_name,
           request_type: requestType,

@@ -15,6 +15,7 @@ create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text not null unique,
   full_name text,
+  role text not null default 'user', -- Systemrolle: 'admin' oder 'user'
   created_date timestamptz not null default now(),
   updated_date timestamptz not null default now(),
   created_by text,
@@ -30,6 +31,7 @@ create table public.profiles (
 create trigger profiles_set_updated_date before update on public.profiles
   for each row execute function public.set_updated_date();
 
+alter table public.profiles add constraint profiles_role_check check (role in ('admin', 'user'));
 alter table public.profiles add constraint profiles_location_check check (location is null or location in ('PB', 'EF', 'admin'));
 
 -- Assignment

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format, differenceInDays, isWeekend } from 'date-fns';
 import { isPublicHoliday } from '../utils/publicHolidays';
 import { de } from 'date-fns/locale';
@@ -84,13 +84,13 @@ export default function SickLeaveManagement() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const currentUser = await base44.auth.me();
+      const currentUser = await api.auth.me();
 
       const [allRequests, allRoles, allRules, usersResponse] = await Promise.all([
-        base44.entities.LeaveRequest.filter({ request_type: 'krankmeldung' }, '-created_date'),
-        base44.entities.Role.filter({ is_active: true }),
-        base44.entities.LeaveApprovalRule.filter({ is_active: true }),
-        base44.functions.invoke('listAllUsers', {})
+        api.entities.LeaveRequest.filter({ request_type: 'krankmeldung' }, '-created_date'),
+        api.entities.Role.filter({ is_active: true }),
+        api.entities.LeaveApprovalRule.filter({ is_active: true }),
+        api.functions.invoke('listAllUsers', {})
       ]);
 
       setUser(currentUser);
@@ -147,7 +147,7 @@ export default function SickLeaveManagement() {
     if (!ruleForm.user_email || ruleForm.can_view_roles.length === 0) return;
     setSubmitting(true);
     try {
-      await base44.entities.LeaveApprovalRule.create({
+      await api.entities.LeaveApprovalRule.create({
         user_email: ruleForm.user_email,
         can_view_roles: ruleForm.can_view_roles,
         is_active: true
@@ -166,7 +166,7 @@ export default function SickLeaveManagement() {
   const handleDeleteRule = async (ruleId) => {
     if (!confirm('Regel wirklich löschen?')) return;
     try {
-      await base44.entities.LeaveApprovalRule.update(ruleId, { is_active: false });
+      await api.entities.LeaveApprovalRule.update(ruleId, { is_active: false });
       await loadData();
     } catch (error) {
       console.error('Error deleting rule:', error);
@@ -190,7 +190,7 @@ export default function SickLeaveManagement() {
       const newStatus = actionType === 'approve' ? 'genehmigt' :
                        actionType === 'reject' ? 'abgelehnt' : 'in_pruefung';
 
-      await base44.entities.LeaveRequest.update(selectedRequest.id, {
+      await api.entities.LeaveRequest.update(selectedRequest.id, {
         status: newStatus,
         notes: notes,
         approved_by: user.full_name || user.email,
@@ -216,7 +216,7 @@ export default function SickLeaveManagement() {
             }
           }
           if (assignmentsToCreate.length > 0) {
-            await base44.entities.Assignment.bulkCreate(assignmentsToCreate);
+            await api.entities.Assignment.bulkCreate(assignmentsToCreate);
           }
         }
       }
@@ -227,7 +227,7 @@ export default function SickLeaveManagement() {
         const statusText = newStatus === 'genehmigt' ? 'anerkannt' :
                           newStatus === 'abgelehnt' ? 'abgelehnt' : 'in Prüfung';
         try {
-          await base44.integrations.Core.SendEmail({
+          await api.integrations.Core.SendEmail({
             to: requester.email,
             subject: `Krankmeldung ${statusText}`,
             body: `

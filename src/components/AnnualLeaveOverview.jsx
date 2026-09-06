@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format, startOfYear, endOfYear, eachDayOfInterval, isWeekend, getMonth, getDay, parseISO, isWithinInterval } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { isPublicHoliday } from '../utils/publicHolidays';
@@ -194,10 +194,10 @@ export default function AnnualLeaveOverview() {
     try {
       const yearStr = String(year);
       const [me, empsData, assignmentsData, leaveRequestsData] = await Promise.all([
-        base44.auth.me(),
-        base44.entities.Employee.filter({ is_active: true }),
-        base44.entities.Assignment.filter({}),
-        base44.entities.LeaveRequest.filter({}),  // alle Status laden
+        api.auth.me(),
+        api.entities.Employee.filter({ is_active: true }),
+        api.entities.Assignment.filter({}),
+        api.entities.LeaveRequest.filter({}),  // alle Status laden
       ]);
 
       setCurrentUser(me);
@@ -345,7 +345,7 @@ export default function AnnualLeaveOverview() {
         a => a.employee_id === employee.id && a.date === dateStr && allTypes.includes(a.assignment_type)
       );
       // Find all LeaveRequests for this employee that cover this day (including multi-day ranges)
-      const allLeaveReqs = await base44.entities.LeaveRequest.filter({
+      const allLeaveReqs = await api.entities.LeaveRequest.filter({
         employee_id: employee.id,
       });
       const coveringLeaveReqs = allLeaveReqs.filter(r =>
@@ -355,7 +355,7 @@ export default function AnnualLeaveOverview() {
       );
 
       // Also fetch any real Assignments from the daily view for this employee/day
-      const dailyAssignments = await base44.entities.Assignment.filter({
+      const dailyAssignments = await api.entities.Assignment.filter({
         employee_id: employee.id,
         date: dateStr,
       });
@@ -371,12 +371,12 @@ export default function AnnualLeaveOverview() {
       );
 
       await Promise.all([
-        ...existing.filter(a => !a._from_leave_request).map(a => base44.entities.Assignment.delete(a.id)),
-        ...coveringLeaveReqs.map(r => base44.entities.LeaveRequest.delete(r.id)),
-        ...revocationReqs.map(r => base44.entities.LeaveRequest.delete(r.id)), // Delete related revocations
+        ...existing.filter(a => !a._from_leave_request).map(a => api.entities.Assignment.delete(a.id)),
+        ...coveringLeaveReqs.map(r => api.entities.LeaveRequest.delete(r.id)),
+        ...revocationReqs.map(r => api.entities.LeaveRequest.delete(r.id)), // Delete related revocations
         ...relevantDailyAssignments
           .filter(a => !existing.find(e => e.id === a.id))
-          .map(a => base44.entities.Assignment.delete(a.id)),
+          .map(a => api.entities.Assignment.delete(a.id)),
       ]);
 
       // For each deleted multi-day LeaveRequest: recreate as two parts (before + after the deleted day)
@@ -397,7 +397,7 @@ export default function AnnualLeaveOverview() {
           splits.push({ ...req, start_date: afterStartStr, end_date: req.end_date });
         }
 
-        await Promise.all(splits.map(split => base44.entities.LeaveRequest.create({
+        await Promise.all(splits.map(split => api.entities.LeaveRequest.create({
           employee_id: split.employee_id,
           employee_name: split.employee_name,
           request_type: split.request_type,
@@ -414,7 +414,7 @@ export default function AnnualLeaveOverview() {
         // If the cell had an azubi-derived symbol (S/T/P), save an override_leer to block re-derivation
         const azubiDerived = getAzubiSymbol(employees.find(e => e.id === employee.id), dateStr, editDialog.date);
         if (azubiDerived) {
-          await base44.entities.Assignment.create({
+          await api.entities.Assignment.create({
             employee_id: employee.id,
             date: dateStr,
             assignment_type: 'override_leer',
@@ -427,7 +427,7 @@ export default function AnnualLeaveOverview() {
       }
 
       if (symbol) {
-        const created = await base44.entities.Assignment.create({
+        const created = await api.entities.Assignment.create({
           employee_id: employee.id,
           date: dateStr,
           assignment_type: typeMap[symbol],
@@ -441,7 +441,7 @@ export default function AnnualLeaveOverview() {
         // For U (Urlaub) and K (Krank): also create a LeaveRequest so it shows up in user's leave/sick pages
         if (symbol === 'U' || symbol === 'K') {
           const requestType = symbol === 'U' ? 'urlaub' : 'krankmeldung';
-          await base44.entities.LeaveRequest.create({
+          await api.entities.LeaveRequest.create({
             employee_id: employee.id,
             employee_name: employee.full_name,
             request_type: requestType,

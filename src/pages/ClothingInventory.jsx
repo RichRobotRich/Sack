@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { Shirt, FileText, User, TrendingUp, Plus } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -29,12 +29,12 @@ export default function ClothingInventory() {
     setLoading(true);
     try {
       const [itemsData, deliveriesData, requestsData, returnsData, employeesData, issuesData] = await Promise.all([
-        base44.entities.ClothingItem.filter({ is_active: true }),
-        base44.entities.ClothingDelivery.list('-delivery_date'),
-        base44.entities.ClothingRequest.list('-created_date'),
-        base44.entities.ClothingReturn.list('-created_date'),
-        base44.entities.Employee.list(),
-        base44.entities.ClothingIssue.list('-issue_date')
+        api.entities.ClothingItem.filter({ is_active: true }),
+        api.entities.ClothingDelivery.list('-delivery_date'),
+        api.entities.ClothingRequest.list('-created_date'),
+        api.entities.ClothingReturn.list('-created_date'),
+        api.entities.Employee.list(),
+        api.entities.ClothingIssue.list('-issue_date')
       ]);
       setItems(itemsData);
       setDeliveries(deliveriesData);
@@ -44,11 +44,11 @@ export default function ClothingInventory() {
       setIssues(issuesData);
 
       try {
-        const [usersData, me] = await Promise.all([base44.entities.User.list(), base44.auth.me()]);
+        const [usersData, me] = await Promise.all([api.entities.User.list(), api.auth.me()]);
         setUsers(usersData);
         setCurrentUser(me);
       } catch {
-        try { const me = await base44.auth.me(); setCurrentUser(me); } catch {}
+        try { const me = await api.auth.me(); setCurrentUser(me); } catch {}
         setUsers([]);
       }
     } catch (error) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +12,7 @@ export default function VehicleEditDialog({ vehicle, onClose, onSaved }) {
   const [employees, setEmployees] = useState([]);
 
   useEffect(() => {
-    base44.entities.Employee.filter({ is_active: true })
+    api.entities.Employee.filter({ is_active: true })
       .then(data => setEmployees(data.filter(e => !e.is_ef && ['monteur', 'projektleiter'].includes(e.employee_type))))
       .catch(() => {});
   }, []);
@@ -34,7 +34,7 @@ export default function VehicleEditDialog({ vehicle, onClose, onSaved }) {
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      await base44.entities.Vehicle.update(vehicle.id, {
+      await api.entities.Vehicle.update(vehicle.id, {
         ...form,
         seats: form.seats ? parseInt(form.seats) : null,
         assigned_employee_id: form.assigned_employee_id || null,

@@ -1,5 +1,5 @@
 import { useState, forwardRef, useImperativeHandle } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import {
@@ -117,9 +117,9 @@ const ClothingInventoryPanel = forwardRef(function ClothingInventoryPanel({
 
   const doSubmitItem = async () => {
     if (editingItem) {
-      await base44.entities.ClothingItem.update(editingItem.id, itemForm);
+      await api.entities.ClothingItem.update(editingItem.id, itemForm);
     } else {
-      await base44.entities.ClothingItem.create({ ...itemForm, is_active: true, is_used: isUsed });
+      await api.entities.ClothingItem.create({ ...itemForm, is_active: true, is_used: isUsed });
     }
     setItemDialogOpen(false);
     setDuplicateDialog({ open: false, similar: [], pendingData: null });
@@ -129,14 +129,14 @@ const ClothingInventoryPanel = forwardRef(function ClothingInventoryPanel({
 
   const handleSubmitDelivery = async () => {
     if (!deliveryForm.clothing_item_id || !deliveryForm.quantity) return;
-    await base44.entities.ClothingDelivery.create({
+    await api.entities.ClothingDelivery.create({
       ...deliveryForm,
       delivery_date: format(deliveryForm.delivery_date, 'yyyy-MM-dd'),
       recorded_by_name: currentUser?.full_name || currentUser?.email || ''
     });
     const item = items.find(i => i.id === deliveryForm.clothing_item_id);
     if (item) {
-      await base44.entities.ClothingItem.update(item.id, { current_stock: item.current_stock + parseInt(deliveryForm.quantity) });
+      await api.entities.ClothingItem.update(item.id, { current_stock: item.current_stock + parseInt(deliveryForm.quantity) });
     }
     setDeliveryDialogOpen(false);
     resetDeliveryForm();
@@ -146,9 +146,9 @@ const ClothingInventoryPanel = forwardRef(function ClothingInventoryPanel({
   const handleDelete = async () => {
     if (!deleteDialog.id) return;
     if (deleteDialog.type === 'item') {
-      await base44.entities.ClothingItem.update(deleteDialog.id, { is_active: false });
+      await api.entities.ClothingItem.update(deleteDialog.id, { is_active: false });
     } else {
-      await base44.entities.ClothingDelivery.delete(deleteDialog.id);
+      await api.entities.ClothingDelivery.delete(deleteDialog.id);
     }
     setDeleteDialog({ open: false, id: null, type: null });
     onRefresh();
@@ -187,7 +187,7 @@ const ClothingInventoryPanel = forwardRef(function ClothingInventoryPanel({
     const employee = employees.find(e => e.id === request.employee_id);
     if (!clothingItem || clothingItem.current_stock < issueForm.quantity) return;
 
-    await base44.entities.ClothingIssue.create({
+    await api.entities.ClothingIssue.create({
       employee_id: request.employee_id,
       employee_name: employee?.full_name || request.employee_id,
       clothing_item_id: item.clothing_item_id,
@@ -200,7 +200,7 @@ const ClothingInventoryPanel = forwardRef(function ClothingInventoryPanel({
       notes: request.notes || '',
       recorded_by_name: currentUser?.full_name || currentUser?.email || ''
     });
-    await base44.entities.ClothingItem.update(clothingItem.id, { current_stock: clothingItem.current_stock - issueForm.quantity });
+    await api.entities.ClothingItem.update(clothingItem.id, { current_stock: clothingItem.current_stock - issueForm.quantity });
 
     const updatedItems = request.items.map(i => {
       if (i.clothing_item_id === item.clothing_item_id) {
@@ -211,9 +211,9 @@ const ClothingInventoryPanel = forwardRef(function ClothingInventoryPanel({
     }).filter(Boolean);
 
     if (updatedItems.length > 0) {
-      await base44.entities.ClothingRequest.update(request.id, { items: updatedItems, status: 'in_bearbeitung' });
+      await api.entities.ClothingRequest.update(request.id, { items: updatedItems, status: 'in_bearbeitung' });
     } else {
-      await base44.entities.ClothingRequest.update(request.id, { status: 'geliefert' });
+      await api.entities.ClothingRequest.update(request.id, { status: 'geliefert' });
     }
     setIssueDialogOpen(false);
     setSelectedRequestItem(null);
@@ -231,14 +231,14 @@ const ClothingInventoryPanel = forwardRef(function ClothingInventoryPanel({
     for (const line of validLines) {
       const clothingItem = items.find(i => i.id === line.clothing_item_id);
       if (!clothingItem || clothingItem.current_stock < line.quantity) continue;
-      await base44.entities.ClothingIssue.create({
+      await api.entities.ClothingIssue.create({
         employee_id: resolvedId, employee_name: resolvedName,
         clothing_item_id: line.clothing_item_id, article_name: clothingItem.article_name, size: clothingItem.size,
         quantity: line.quantity, request_date: format(new Date(), 'yyyy-MM-dd'), issue_date: format(new Date(), 'yyyy-MM-dd'),
         notes: notes || '',
         recorded_by_name: currentUser?.full_name || currentUser?.email || ''
       });
-      await base44.entities.ClothingItem.update(clothingItem.id, { current_stock: clothingItem.current_stock - line.quantity });
+      await api.entities.ClothingItem.update(clothingItem.id, { current_stock: clothingItem.current_stock - line.quantity });
     }
     setManualIssueDialogOpen(false);
     setManualIssueForm({ employee_id: '', employee_name_free: '', notes: '' });
@@ -249,20 +249,20 @@ const ClothingInventoryPanel = forwardRef(function ClothingInventoryPanel({
   const handleAcceptReturn = async (returnRequest) => {
     if (!confirm('Möchten Sie diese Rückgabe akzeptieren? Der Bestand wird entsprechend erhöht.')) return;
     const relatedIssues = issues.filter(issue => issue.request_id === returnRequest.request_id);
-    for (const issue of relatedIssues) await base44.entities.ClothingIssue.delete(issue.id);
+    for (const issue of relatedIssues) await api.entities.ClothingIssue.delete(issue.id);
     for (const item of returnRequest.items) {
       if (item.clothing_item_id) {
         const clothingItem = items.find(i => i.id === item.clothing_item_id);
-        if (clothingItem) await base44.entities.ClothingItem.update(clothingItem.id, { current_stock: clothingItem.current_stock + item.quantity });
+        if (clothingItem) await api.entities.ClothingItem.update(clothingItem.id, { current_stock: clothingItem.current_stock + item.quantity });
       }
     }
-    await base44.entities.ClothingReturn.delete(returnRequest.id);
+    await api.entities.ClothingReturn.delete(returnRequest.id);
     onRefresh();
   };
 
   const handleRejectReturn = async (returnRequest) => {
     if (!confirm('Möchten Sie diese Rückgabe ablehnen?')) return;
-    await base44.entities.ClothingReturn.update(returnRequest.id, { status: 'abgelehnt' });
+    await api.entities.ClothingReturn.update(returnRequest.id, { status: 'abgelehnt' });
     onRefresh();
   };
 
