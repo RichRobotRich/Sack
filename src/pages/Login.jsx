@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { LogIn, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import AuthLayout from '@/components/AuthLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/api/client';
-import { APP_NAME } from '@/lib/branding';
+import { APP_NAME, LOGO_URL } from '@/lib/branding';
 
 /**
  * Anmeldung. Unter Base44 lag dieser Schritt beim Anbieter – jetzt gehört er
@@ -78,7 +78,7 @@ export default function Login() {
 
   return (
     <AuthLayout
-      icon={LogIn}
+      logo={LOGO_URL}
       title={APP_NAME}
       subtitle={mode === 'signin' ? 'Bitte anmelden' : 'Konto anlegen'}
     >

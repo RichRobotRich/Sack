@@ -93,26 +93,7 @@ export default function Layout({ children, currentPageName }) {
   const [allowedPages, setAllowedPages] = useState([]);
   const [approvalRules, setApprovalRules] = useState([]);
 
-  useEffect(() => {
-    // Dark mode detection
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e) => {
-      if (e.matches) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    };
-    
-    // Initial check
-    if (mediaQuery.matches) {
-      document.documentElement.classList.add('dark');
-    }
-    
-    // Listen for changes
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
+  // Hell/Dunkel wird in App.jsx gesetzt, damit es auch vor der Anmeldung gilt.
 
   useEffect(() => {
     if (user?.role_id) {

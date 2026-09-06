@@ -12,6 +12,7 @@ import AnnualLeaveOverviewPage from './pages/AnnualLeaveOverviewPage';
 import EarlyShiftPage from './pages/EarlyShiftPage';
 import AzubiManagement from './pages/AzubiManagement';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { useSystemTheme } from '@/lib/useSystemTheme';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import UpdatePrompt from '@/components/UpdatePrompt';
 
@@ -86,6 +87,7 @@ const AppRoutes = () => (
 );
 
 function App() {
+  useSystemTheme();
 
   return (
     <AuthProvider>

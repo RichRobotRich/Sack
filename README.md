@@ -155,32 +155,16 @@ dort abgelöst. Was das für den Code bedeutet:
   bestehende Code sie so behandelt. Referenzen sind dadurch nicht auf
   Datenbankebene abgesichert.
 
-### Noch offen
+### Nicht übernommen
 
-Diese Base44-Funktionen liegen unter `base44/functions/` und sind **nicht**
-portiert, weil sie das Frontend nicht aufruft:
+Diese Base44-Funktionen liegen weiterhin unter `base44/functions/`, sind aber
+bewusst nicht portiert: `dataApi`, `generateAuthToken` und
+`webhookPlanProSync_fix` bedienten die PlanPro-Anbindung, die nicht
+fortgeführt wird. `clearFutureVehicles` war eine einmalige Aufräumaktion.
 
-| Funktion | Zweck | Bewertung |
-| --- | --- | --- |
-| `dataApi` | Lesezugriff für die PlanPro-App per API-Key/JWT | wird gebraucht, sobald PlanPro wieder anbinden soll |
-| `generateAuthToken` | Token für ebendiese Schnittstelle | gehört zu `dataApi` |
-| `webhookPlanProSync_fix` | einmaliges Reparaturskript | dürfte hinfällig sein |
-| `clearFutureVehicles` | Aufräumaktion für Fahrzeugzuordnungen | bei Bedarf portieren |
-
-
-### Logo und Symbole
-
-Alle Bildformate entstehen aus einer Vorlage:
-
-```bash
-node scripts/generate-icons.mjs
-```
-
-Neues Logo? `assets/logo-source.png` austauschen (quadratisch, 1024x1024, mit
-transparenten Ecken) und das Skript laufen lassen. Es erzeugt das
-freigestellte Zeichen für die Kopfzeile sowie die Symbole für Android, iOS und
-den Browser-Tab – die drei Formate haben unterschiedliche Anforderungen
-(Transparenz, randlos, deckend), deshalb lohnt der Generator.
+Die Felder `planpro` (Benutzer) und `is_planpro` (Baustelle) sind in Schema
+und Oberfläche noch vorhanden. Sie stören nicht und lassen sich später
+entfernen, wenn feststeht, dass sie niemand mehr braucht.
 
 ## Befehle
 

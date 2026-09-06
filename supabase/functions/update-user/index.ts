@@ -16,30 +16,6 @@ import {
 /** Nur diese Felder dürfen von außen gesetzt werden. */
 const ALLOWED_FIELDS = ['role_id', 'employee_id', 'is_approved', 'location', 'role', 'planpro'] as const;
 
-/**
- * Meldet der Bau-App, dass sich der PlanPro-Zugriff geändert hat.
- * Fehler hier dürfen die Profiländerung nicht zurücknehmen.
- */
-const notifyPlanProWebhook = async (email: string, planpro: boolean) => {
-  const webhookUrl = Deno.env.get('SECONDARY_APP_WEBHOOK_URL');
-  const apiKey = Deno.env.get('SECONDARY_APP_API_KEY');
-  if (!webhookUrl || !apiKey) {
-    console.warn('[planpro webhook] übersprungen: SECONDARY_APP_WEBHOOK_URL oder _API_KEY fehlt');
-    return;
-  }
-
-  try {
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', api_key: apiKey },
-      body: JSON.stringify({ email, planpro }),
-    });
-    console.log(`[planpro webhook] ${email}: HTTP ${response.status}`);
-  } catch (error) {
-    console.error('[planpro webhook] fehlgeschlagen:', error);
-  }
-};
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
@@ -78,10 +54,6 @@ Deno.serve(async (req) => {
     .single();
 
   if (error) return jsonResponse({ error: error.message }, 500);
-
-  if (payload.planpro !== undefined) {
-    await notifyPlanProWebhook(data.email, payload.planpro);
-  }
 
   return jsonResponse({ success: true, user: data });
 });
