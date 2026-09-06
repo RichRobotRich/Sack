@@ -16,6 +16,8 @@ create table public.profiles (
   email text not null unique,
   full_name text,
   role text not null default 'user', -- Systemrolle: 'admin' oder 'user'
+  approved_by text, -- E-Mail des freigebenden Admins
+  approved_at timestamptz, -- Zeitpunkt der Freigabe
   created_date timestamptz not null default now(),
   updated_date timestamptz not null default now(),
   created_by text,

@@ -1,0 +1,22 @@
+project_id = "leniger"
+
+[functions.list-all-users]
+verify_jwt = true
+
+[functions.get-user-count]
+verify_jwt = true
+
+[functions.update-user]
+verify_jwt = true
+
+[functions.download-weekly-report]
+verify_jwt = true
+
+[functions.send-email]
+verify_jwt = true
+
+[functions.delete-account]
+verify_jwt = true
+
+[functions.send-daily-view-pdf-email]
+verify_jwt = true

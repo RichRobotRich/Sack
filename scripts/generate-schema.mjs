@@ -137,6 +137,11 @@ const profilesTable = (entity) => {
       // Systemfeld führte. Der Code prüft an mehreren Stellen user.role ===
       // 'admin', also muss die Spalte hier mitwandern.
       { sql: "  role text not null default 'user'", comment: "Systemrolle: 'admin' oder 'user'" },
+      // Prüfspur der Freigabe. Base44 legte diese Felder beim Schreiben
+      // dynamisch an; gelesen wurden sie nie, sie sind aber die einzige
+      // Auskunft darüber, wer ein Konto freigeschaltet hat.
+      { sql: '  approved_by text', comment: 'E-Mail des freigebenden Admins' },
+      { sql: '  approved_at timestamptz', comment: 'Zeitpunkt der Freigabe' },
       { sql: '  created_date timestamptz not null default now()', comment: '' },
       { sql: '  updated_date timestamptz not null default now()', comment: '' },
       { sql: '  created_by text', comment: '' },
