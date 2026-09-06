@@ -1,0 +1,34 @@
+{
+  "name": "TempAssignment",
+  "type": "object",
+  "properties": {
+    "temp_worker_id": {
+      "type": "string",
+      "description": "Leiharbeiter-ID"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Baustellen-ID"
+    },
+    "week_start": {
+      "type": "string",
+      "format": "date",
+      "description": "Wochenbeginn (Montag)"
+    },
+    "days": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Einsatztage in der Woche"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Bemerkungen"
+    }
+  },
+  "required": [
+    "temp_worker_id",
+    "week_start"
+  ]
+}

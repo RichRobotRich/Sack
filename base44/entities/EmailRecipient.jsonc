@@ -1,0 +1,37 @@
+{
+  "name": "EmailRecipient",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "description": "E-Mail-Adresse"
+    },
+    "name": {
+      "type": "string",
+      "description": "Name"
+    },
+    "notification_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Benachrichtigungstypen: urlaub, krankmeldung, arbeitskleidung"
+    },
+    "allowed_roles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Rollen-IDs, von denen Antr\u00e4ge weitergeleitet werden sollen"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Aktiv"
+    }
+  },
+  "required": [
+    "email",
+    "name"
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "name": "WorkshopTask",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Bauteil/Aufgabe"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Zugeh\u00f6rige Baustelle"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "F\u00e4lligkeitsdatum (strukturiert)"
+    },
+    "due_date_text": {
+      "type": "string",
+      "description": "F\u00e4lligkeitsdatum als Freitext (z.B. KW 22, Ende Mai)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "offen",
+        "bereit",
+        "fertig"
+      ],
+      "default": "offen",
+      "description": "Status"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "niedrig",
+        "normal",
+        "hoch",
+        "dringend"
+      ],
+      "default": "normal",
+      "description": "Priorit\u00e4t"
+    },
+    "assigned_to": {
+      "type": "string",
+      "description": "Zugewiesen an"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Bemerkungen"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

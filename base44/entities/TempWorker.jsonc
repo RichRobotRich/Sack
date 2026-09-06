@@ -1,0 +1,35 @@
+{
+  "name": "TempWorker",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string",
+      "description": "Name des Leiharbeiters"
+    },
+    "agency": {
+      "type": "string",
+      "description": "Leiharbeitsfirma"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Telefonnummer"
+    },
+    "skills": {
+      "type": "string",
+      "description": "Qualifikationen"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Aktiv verf\u00fcgbar"
+    },
+    "is_ef": {
+      "type": "boolean",
+      "default": false,
+      "description": "EF Leiharbeiter"
+    }
+  },
+  "required": [
+    "full_name"
+  ]
+}

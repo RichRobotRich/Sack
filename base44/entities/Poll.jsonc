@@ -1,0 +1,72 @@
+{
+  "name": "Poll",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "\u00dcberschrift der Abstimmung"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Bild-URL"
+    },
+    "description": {
+      "type": "string",
+      "description": "Beschreibungstext"
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Eindeutige ID der Option"
+          },
+          "label": {
+            "type": "string",
+            "description": "Anzeigetext der Option"
+          }
+        }
+      },
+      "description": "Auswahloptionen"
+    },
+    "votes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "user_email": {
+            "type": "string"
+          },
+          "user_name": {
+            "type": "string"
+          },
+          "option_id": {
+            "type": "string"
+          },
+          "voted_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "default": [],
+      "description": "Abgegebene Stimmen"
+    },
+    "show_results": {
+      "type": "boolean",
+      "default": false,
+      "description": "Ergebnisse auf Dashboard anzeigen"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Aktiv/Inaktiv"
+    }
+  },
+  "required": [
+    "title",
+    "options"
+  ]
+}

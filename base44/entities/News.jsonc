@@ -1,0 +1,54 @@
+{
+  "name": "News",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "\u00dcberschrift des Beitrags"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Bild-URL"
+          },
+          "link": {
+            "type": "string",
+            "description": "Link beim Klick auf das Bild"
+          },
+          "caption": {
+            "type": "string",
+            "description": "Bildunterschrift"
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "description": "Array von Bildern mit optionalen Links und Beschriftungen"
+    },
+    "content": {
+      "type": "string",
+      "description": "Haupttext des Beitrags"
+    },
+    "link": {
+      "type": "string",
+      "description": "Link zum Button"
+    },
+    "link_text": {
+      "type": "string",
+      "description": "Anzeigetext f\u00fcr den Button"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Beitrag aktiv/deaktiviert"
+    }
+  },
+  "required": [
+    "title"
+  ]
+}

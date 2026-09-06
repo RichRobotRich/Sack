@@ -1,0 +1,29 @@
+{
+  "name": "CellInfo",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "Baustellen-ID"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Datum des Eintrags (yyyy-MM-dd)"
+    },
+    "info": {
+      "type": "string",
+      "description": "Info-Text f\u00fcr diese Zelle"
+    },
+    "show_in_pdf": {
+      "type": "boolean",
+      "default": false,
+      "description": "Info im PDF anzeigen"
+    }
+  },
+  "required": [
+    "project_id",
+    "date",
+    "info"
+  ]
+}

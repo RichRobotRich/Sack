@@ -1,0 +1,26 @@
+{
+  "name": "LeaveApprovalRule",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "E-Mail des Benutzers, der Antr\u00e4ge sehen darf"
+    },
+    "can_view_roles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Liste der Rollen-IDs, deren Antr\u00e4ge dieser Benutzer sehen kann"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Regel aktiv"
+    }
+  },
+  "required": [
+    "user_email",
+    "can_view_roles"
+  ]
+}

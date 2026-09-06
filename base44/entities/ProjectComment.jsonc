@@ -1,0 +1,24 @@
+{
+  "name": "ProjectComment",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID der Baustelle"
+    },
+    "text": {
+      "type": "string",
+      "description": "Kommentartext"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Ab welchem Montag gilt der Kommentar (inklusiv)"
+    }
+  },
+  "required": [
+    "project_id",
+    "text",
+    "start_date"
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "name": "WeeklyReport",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "E-Mail des Benutzers"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Name des Benutzers"
+    },
+    "week_start": {
+      "type": "string",
+      "format": "date",
+      "description": "Montag der Woche"
+    },
+    "days": {
+      "type": "array",
+      "description": "Arbeitstage Montag bis Freitag",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "project_name": {
+            "type": "string"
+          },
+          "start_time": {
+            "type": "string"
+          },
+          "end_time": {
+            "type": "string"
+          },
+          "break_minutes": {
+            "type": "number"
+          },
+          "work_hours": {
+            "type": "number"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "total_hours": {
+      "type": "number",
+      "description": "Gesamtstunden der Woche"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "in_pruefung",
+        "anerkannt",
+        "abgelehnt"
+      ],
+      "default": "in_pruefung",
+      "description": "Status des Berichts"
+    },
+    "submitted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Zeitpunkt der Einreichung"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "description": "Gepr\u00fcft von"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Zeitpunkt der Pr\u00fcfung"
+    },
+    "review_note": {
+      "type": "string",
+      "description": "Bemerkung zur Pr\u00fcfung"
+    }
+  },
+  "required": [
+    "user_email",
+    "week_start",
+    "days"
+  ]
+}

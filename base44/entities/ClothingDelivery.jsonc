@@ -1,0 +1,36 @@
+{
+  "name": "ClothingDelivery",
+  "type": "object",
+  "properties": {
+    "clothing_item_id": {
+      "type": "string",
+      "description": "Artikel-ID"
+    },
+    "quantity": {
+      "type": "number",
+      "description": "Menge"
+    },
+    "delivery_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Lieferdatum"
+    },
+    "supplier": {
+      "type": "string",
+      "description": "Lieferant"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Bemerkungen"
+    },
+    "recorded_by_name": {
+      "type": "string",
+      "description": "Name des Benutzers, der die Lieferung erfasst hat"
+    }
+  },
+  "required": [
+    "clothing_item_id",
+    "quantity",
+    "delivery_date"
+  ]
+}

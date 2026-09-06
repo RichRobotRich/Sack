@@ -1,0 +1,18 @@
+{
+  "name": "BridgeDay",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Datum des Br\u00fcckentages (yyyy-MM-dd)"
+    },
+    "note": {
+      "type": "string",
+      "description": "Optionale Notiz"
+    }
+  },
+  "required": [
+    "date"
+  ]
+}

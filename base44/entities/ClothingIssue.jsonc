@@ -1,0 +1,71 @@
+{
+  "name": "ClothingIssue",
+  "type": "object",
+  "properties": {
+    "employee_id": {
+      "type": "string",
+      "description": "Mitarbeiter-ID"
+    },
+    "employee_name": {
+      "type": "string",
+      "description": "Name des Mitarbeiters"
+    },
+    "clothing_item_id": {
+      "type": "string",
+      "description": "Artikel-ID"
+    },
+    "article_name": {
+      "type": "string",
+      "description": "Artikelbezeichnung"
+    },
+    "size": {
+      "type": "string",
+      "description": "Gr\u00f6\u00dfe"
+    },
+    "quantity": {
+      "type": "number",
+      "description": "Ausgegebene Menge"
+    },
+    "request_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Anfragedatum"
+    },
+    "issue_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Ausgabedatum"
+    },
+    "request_id": {
+      "type": "string",
+      "description": "Zugeh\u00f6rige Anfrage-ID"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Bemerkungen"
+    },
+    "recorded_by_name": {
+      "type": "string",
+      "description": "Name des Benutzers, der die Ausgabe erfasst hat"
+    },
+    "is_returned": {
+      "type": "boolean",
+      "default": false,
+      "description": "Wurde zur\u00fcckgegeben"
+    },
+    "returned_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Datum der R\u00fcckgabe"
+    }
+  },
+  "required": [
+    "employee_id",
+    "employee_name",
+    "clothing_item_id",
+    "article_name",
+    "size",
+    "quantity",
+    "issue_date"
+  ]
+}

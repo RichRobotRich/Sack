@@ -1,0 +1,42 @@
+{
+  "name": "Role",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Rollenname"
+    },
+    "allowed_pages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Erlaubte Seiten f\u00fcr diese Rolle"
+    },
+    "is_admin": {
+      "type": "boolean",
+      "default": false,
+      "description": "Admin-Rolle (hat Zugriff auf alles)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Aktiv"
+    },
+    "description": {
+      "type": "string",
+      "description": "Beschreibung der Rolle"
+    },
+    "can_approve_leave_for_roles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Liste der Rollen-IDs, deren Urlaubsantr\u00e4ge diese Rolle genehmigen kann"
+    }
+  },
+  "required": [
+    "name",
+    "allowed_pages"
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "name": "ClothingRequest",
+  "type": "object",
+  "properties": {
+    "employee_id": {
+      "type": "string",
+      "description": "Mitarbeiter-ID"
+    },
+    "items": {
+      "type": "array",
+      "description": "Bestellte Artikel",
+      "items": {
+        "type": "object",
+        "properties": {
+          "clothing_item_id": {
+            "type": "string",
+            "description": "Artikel-ID"
+          },
+          "article": {
+            "type": "string",
+            "description": "Artikelbezeichnung"
+          },
+          "size": {
+            "type": "string",
+            "description": "Gr\u00f6\u00dfe"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Anzahl"
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "eingereicht",
+        "in_bearbeitung",
+        "bestellt",
+        "geliefert",
+        "abgelehnt"
+      ],
+      "default": "eingereicht",
+      "description": "Status"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Bemerkungen"
+    },
+    "processed_by": {
+      "type": "string",
+      "description": "Bearbeitet von"
+    }
+  },
+  "required": []
+}

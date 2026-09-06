@@ -1,0 +1,91 @@
+{
+  "name": "LeaveRequest",
+  "type": "object",
+  "properties": {
+    "employee_id": {
+      "type": "string",
+      "description": "Mitarbeiter-ID"
+    },
+    "employee_name": {
+      "type": "string",
+      "description": "Name des Mitarbeiters"
+    },
+    "requester_role_id": {
+      "type": "string",
+      "description": "Rolle des Antragstellers"
+    },
+    "request_type": {
+      "type": "string",
+      "enum": [
+        "urlaub",
+        "krankmeldung"
+      ],
+      "description": "Antragstyp"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Startdatum"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Enddatum"
+    },
+    "is_half_day": {
+      "type": "boolean",
+      "default": false,
+      "description": "Halber Tag"
+    },
+    "half_day_type": {
+      "type": "string",
+      "enum": [
+        "vormittag",
+        "nachmittag"
+      ],
+      "description": "Vormittag oder Nachmittag (nur wenn is_half_day true)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "eingereicht",
+        "in_pruefung",
+        "genehmigt",
+        "abgelehnt"
+      ],
+      "default": "eingereicht",
+      "description": "Status"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Begr\u00fcndung"
+    },
+    "attachment_url": {
+      "type": "string",
+      "description": "Angeh\u00e4ngte Datei/Bild URL"
+    },
+    "approved_by": {
+      "type": "string",
+      "description": "Genehmigt von"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Genehmigt am"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Bemerkungen"
+    },
+    "is_revoked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Wurde aufgehoben"
+    }
+  },
+  "required": [
+    "request_type",
+    "start_date",
+    "end_date"
+  ]
+}

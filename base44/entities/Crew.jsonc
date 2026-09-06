@@ -1,0 +1,20 @@
+{
+  "name": "Crew",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name der Kolonne"
+    },
+    "member_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Liste der Mitarbeiter-IDs (alle Monteure)"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

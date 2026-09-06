@@ -1,0 +1,70 @@
+{
+  "name": "ClothingItem",
+  "type": "object",
+  "properties": {
+    "article_name": {
+      "type": "string",
+      "description": "Artikelbezeichnung"
+    },
+    "size": {
+      "type": "string",
+      "enum": [
+        "23",
+        "24",
+        "25",
+        "26",
+        "27",
+        "28",
+        "29",
+        "30",
+        "40",
+        "42",
+        "44",
+        "46",
+        "48",
+        "50",
+        "52",
+        "54",
+        "56",
+        "58",
+        "60",
+        "62",
+        "64",
+        "88",
+        "90",
+        "94",
+        "98",
+        "102",
+        "106",
+        "110",
+        "114",
+        "4XL"
+      ],
+      "description": "Gr\u00f6\u00dfe"
+    },
+    "current_stock": {
+      "type": "number",
+      "default": 0,
+      "description": "Aktueller Bestand"
+    },
+    "minimum_stock": {
+      "type": "number",
+      "default": 0,
+      "description": "Mindestbestand"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Aktiv"
+    },
+    "is_used": {
+      "type": "boolean",
+      "default": false,
+      "description": "Gebrauchte Kleidung"
+    }
+  },
+  "required": [
+    "article_name",
+    "size"
+  ]
+}

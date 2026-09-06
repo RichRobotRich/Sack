@@ -1,0 +1,53 @@
+{
+  "name": "ClothingReturn",
+  "type": "object",
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "description": "Zugeh\u00f6rige Anfrage-ID"
+    },
+    "employee_id": {
+      "type": "string",
+      "description": "Mitarbeiter-ID"
+    },
+    "items": {
+      "type": "array",
+      "description": "Zur\u00fcckzugebende Artikel",
+      "items": {
+        "type": "object",
+        "properties": {
+          "article": {
+            "type": "string"
+          },
+          "size": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "clothing_item_id": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "reason": {
+      "type": "string",
+      "description": "Grund der R\u00fcckgabe / Bemerkung"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "eingereicht",
+        "akzeptiert",
+        "abgelehnt"
+      ],
+      "default": "eingereicht",
+      "description": "Status der R\u00fcckgabe"
+    }
+  },
+  "required": [
+    "request_id",
+    "reason"
+  ]
+}

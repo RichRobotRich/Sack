@@ -1,0 +1,9 @@
+{
+  "type": "one_drive",
+  "scopes": [
+    "Files.ReadWrite",
+    "Files.ReadWrite.All",
+    "User.Read",
+    "offline_access"
+  ]
+}

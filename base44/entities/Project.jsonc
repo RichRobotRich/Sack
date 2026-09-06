@@ -1,0 +1,91 @@
+{
+  "name": "Project",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Baustellenname"
+    },
+    "cost_center_number": {
+      "type": "string",
+      "description": "Kostentr\u00e4ger Nummer"
+    },
+    "address": {
+      "type": "string",
+      "description": "Adresse"
+    },
+    "city": {
+      "type": "string",
+      "description": "Stadt"
+    },
+    "project_leader_id": {
+      "type": "string",
+      "description": "ID des Projektleiters"
+    },
+    "completion_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Fertigstellungstermin (Datum)"
+    },
+    "completion_date_text": {
+      "type": "string",
+      "description": "Fertigstellungstermin als Text (z.B. 'KW 20', 'Ende Juli')"
+    },
+    "default_departure_time": {
+      "type": "string",
+      "description": "Standard-Abfahrtszeit"
+    },
+    "default_work_start_time": {
+      "type": "string",
+      "description": "Standard-Arbeitszeit von (HH:MM)"
+    },
+    "default_work_end_time": {
+      "type": "string",
+      "description": "Standard-Arbeitszeit bis (HH:MM)"
+    },
+    "lead_assembler": {
+      "type": "string",
+      "description": "Obermonteur"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "aktiv",
+        "abgeschlossen",
+        "pausiert"
+      ],
+      "default": "aktiv",
+      "description": "Projektstatus"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Bemerkungen"
+    },
+    "is_ts_project": {
+      "type": "boolean",
+      "default": false,
+      "description": "TS Projekt (wird nicht in Bauvorhaben angezeigt)"
+    },
+    "is_ef_project": {
+      "type": "boolean",
+      "default": false,
+      "description": "EF Projekt"
+    },
+    "is_planpro": {
+      "type": "boolean",
+      "default": false,
+      "description": "PlanPro Projekt (wird in der PlanPro App angezeigt)"
+    },
+    "accommodation_name": {
+      "type": "string",
+      "description": "Name der Unterkunft"
+    },
+    "accommodation_address": {
+      "type": "string",
+      "description": "Adresse der Unterkunft"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

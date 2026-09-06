@@ -1,0 +1,45 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role_id": {
+      "type": "string",
+      "description": "Rollen-ID"
+    },
+    "is_approved": {
+      "type": "boolean",
+      "default": false,
+      "description": "Vom Admin freigegeben"
+    },
+    "employee_id": {
+      "type": "string",
+      "description": "Verkn\u00fcpfter Mitarbeiter"
+    },
+    "location": {
+      "type": "string",
+      "enum": [
+        "PB",
+        "EF",
+        "admin"
+      ],
+      "description": "Standort des Benutzers"
+    },
+    "display_name": {
+      "type": "string",
+      "description": "Anzeigename des Benutzers (wird verwendet wenn kein Mitarbeiter verkn\u00fcpft ist)"
+    },
+    "planpro": {
+      "type": "boolean",
+      "default": false,
+      "description": "PlanPro Zugriff"
+    },
+    "pl_sort_order": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Gespeicherte PL-Reihenfolge f\u00fcr Wocheneinteilung"
+    }
+  },
+  "required": []
+}

@@ -1,0 +1,190 @@
+{
+  "name": "Employee",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string",
+      "description": "Vollst\u00e4ndiger Name des Mitarbeiters"
+    },
+    "employee_type": {
+      "type": "string",
+      "enum": [
+        "projektleiter",
+        "monteur",
+        "azubi",
+        "praktikant",
+        "buerokraft",
+        "lagerist"
+      ],
+      "description": "Typ des Mitarbeiters"
+    },
+    "abbreviation": {
+      "type": "string",
+      "description": "K\u00fcrzel f\u00fcr Projektleiter"
+    },
+    "overnight_stay": {
+      "type": "boolean",
+      "default": false,
+      "description": "\u00dcbernachtung dauerhaft (Legacy, wird durch overnight_stay_weeks ersetzt)"
+    },
+    "overnight_stay_weeks": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "date"
+      },
+      "description": "Liste von Montags-Daten (yyyy-MM-dd) der Wochen mit \u00dcbernachtung"
+    },
+    "overnight_stay_days": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "week_start": {
+            "type": "string",
+            "format": "date",
+            "description": "Montag der KW"
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "description": "Wochentage mit \u00dcbernachtung (0=Mo, 1=Di, 2=Mi, 3=Do, 4=Fr)"
+          }
+        }
+      },
+      "description": "Pro KW: welche Tage der Mitarbeiter auf Montage ist (\u00dcbernachtung)"
+    },
+    "friday_exceptions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "date"
+      },
+      "description": "Liste von Freitags-Daten (yyyy-MM-dd), an denen der Mitarbeiter trotz \u00dcbernachtungs-KW arbeitet (Ausnahme)"
+    },
+    "has_drivers_license": {
+      "type": "boolean",
+      "default": false,
+      "description": "F\u00fchrerschein vorhanden"
+    },
+    "has_trailer_license": {
+      "type": "boolean",
+      "default": false,
+      "description": "Anh\u00e4ngerf\u00fchrerschein vorhanden"
+    },
+    "apprentice_year": {
+      "type": "number",
+      "description": "Lehrjahr (f\u00fcr Azubis)"
+    },
+    "school_days": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "description": "Wochentage der Berufsschule (0=Mo, 1=Di, 2=Mi, 3=Do, 4=Fr) f\u00fcr Azubis"
+    },
+    "vacation_periods": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "start_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "description": "Ferienzeiten f\u00fcr Azubis (keine automatische Schulzuweisung)"
+    },
+    "tbz_periods": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "start_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "description": "TBZ-Zeitr\u00e4ume f\u00fcr Azubis (automatische TBZ-Zuweisung)"
+    },
+    "exam_periods": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "start_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "description": "Pr\u00fcfungszeitr\u00e4ume f\u00fcr Azubis (automatische Pr\u00fcfungs-Zuweisung)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Mitarbeiter aktiv"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Telefonnummer"
+    },
+    "email": {
+      "type": "string",
+      "description": "E-Mail-Adresse"
+    },
+    "remark": {
+      "type": "string",
+      "description": "Bemerkung zum Mitarbeiter"
+    },
+    "is_ef": {
+      "type": "boolean",
+      "default": false,
+      "description": "EF Mitarbeiter"
+    },
+    "is_independent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Eigenst\u00e4ndig (wird lila angezeigt)"
+    },
+    "early_shift": {
+      "type": "boolean",
+      "default": false,
+      "description": "Fr\u00fchschicht (wird in der Fr\u00fchschicht-Jahres\u00fcbersicht angezeigt)"
+    },
+    "has_workshop": {
+      "type": "boolean",
+      "default": false,
+      "description": "Monteur arbeitet in der Werkstatt"
+    },
+    "mentor_id": {
+      "type": "string",
+      "description": "ID des zugeordneten Betreuers (Monteur) f\u00fcr Azubis"
+    },
+    "always_own_vehicle": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mitarbeiter f\u00e4hrt immer mit eigenem Fahrzeug (Kolonne/Eigenfahrer) \u2013 sein zugeordnetes Fahrzeug wird immer auf seine Baustelle gesetzt"
+    }
+  },
+  "required": [
+    "full_name",
+    "employee_type"
+  ]
+}

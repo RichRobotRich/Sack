@@ -1,0 +1,17 @@
+{
+  "name": "TempWorkerProjectRow",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID der Baustelle"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Bemerkungen zur Baustelle"
+    }
+  },
+  "required": [
+    "project_id"
+  ]
+}

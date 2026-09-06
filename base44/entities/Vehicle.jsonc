@@ -1,0 +1,64 @@
+{
+  "name": "Vehicle",
+  "type": "object",
+  "properties": {
+    "license_plate": {
+      "type": "string",
+      "description": "Kennzeichen"
+    },
+    "vehicle_number": {
+      "type": "string",
+      "description": "Interne Fahrzeugnummer"
+    },
+    "vehicle_type": {
+      "type": "string",
+      "enum": [
+        "transporter",
+        "pkw",
+        "lkw",
+        "anhaenger"
+      ],
+      "description": "Fahrzeugtyp"
+    },
+    "seats": {
+      "type": "number",
+      "description": "Anzahl Sitzpl\u00e4tze"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Fahrzeug verf\u00fcgbar"
+    },
+    "is_ef": {
+      "type": "boolean",
+      "default": false,
+      "description": "EF Fahrzeug"
+    },
+    "next_tuev_date": {
+      "type": "string",
+      "format": "date",
+      "description": "N\u00e4chster T\u00dcV-Termin"
+    },
+    "next_inspection_date": {
+      "type": "string",
+      "format": "date",
+      "description": "N\u00e4chster Inspektionstermin"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Bemerkungen"
+    },
+    "assigned_employee_id": {
+      "type": "string",
+      "description": "Zugeordneter Monteur (f\u00fcr Transporter/PKW)"
+    },
+    "always_assign": {
+      "type": "boolean",
+      "default": false,
+      "description": "Fahrzeug immer automatisch zuteilen wenn der verkn\u00fcpfte Monteur eingeplant ist (z.B. Eigenfahrer, Kolonnenfahrzeug)"
+    }
+  },
+  "required": [
+    "license_plate"
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "name": "Assignment",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Einsatzdatum"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Baustellen-ID"
+    },
+    "employee_id": {
+      "type": "string",
+      "description": "Mitarbeiter-ID"
+    },
+    "vehicle_id": {
+      "type": "string",
+      "description": "Fahrzeug-ID"
+    },
+    "departure_time": {
+      "type": "string",
+      "description": "Abfahrtszeit"
+    },
+    "work_start_time": {
+      "type": "string",
+      "description": "Arbeitszeit von (HH:MM)"
+    },
+    "work_end_time": {
+      "type": "string",
+      "description": "Arbeitszeit bis (HH:MM)"
+    },
+    "assignment_type": {
+      "type": "string",
+      "enum": [
+        "baustelle",
+        "urlaub",
+        "krank",
+        "schule",
+        "pruefung",
+        "tbz",
+        "ts",
+        "beurlaubung",
+        "override_leer"
+      ],
+      "default": "baustelle",
+      "description": "Art des Eintrags"
+    },
+    "is_supervisor": {
+      "type": "boolean",
+      "default": false,
+      "description": "Bauleitender Monteur"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Bemerkungen"
+    }
+  },
+  "required": [
+    "date"
+  ]
+}
