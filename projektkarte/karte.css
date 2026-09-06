@@ -77,20 +77,58 @@ button, input, select, textarea {
   position: relative;
 }
 
-/* ---------------------------------------------------------------- Seitenleiste */
+/* ---------------------------------------------------------------- Suche */
 
-.seitenleiste {
-  width: 320px;
-  flex: 0 0 320px;
+.knopf-lupe {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  border: 1px solid var(--linie);
   background: #fff;
-  border-right: 1px solid var(--linie);
+  color: var(--text);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.knopf-lupe:hover { background: var(--flaeche); }
+
+.knopf-lupe[aria-expanded="true"] {
+  background: var(--blau);
+  border-color: var(--blau);
+  color: #fff;
+}
+
+.suchtafel {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 330px;
+  max-width: calc(100% - 28px);
+  max-height: calc(100% - 28px);
+  background: #fff;
+  border: 1px solid var(--linie);
+  border-radius: 14px;
+  box-shadow: var(--schatten);
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  z-index: 22;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+  transition: opacity .16s ease, transform .16s ease;
+}
+
+.suchtafel.offen {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
 }
 
 .suchfeld {
-  padding: 12px;
+  padding: 10px;
   border-bottom: 1px solid var(--linie);
 }
 
@@ -111,7 +149,8 @@ button, input, select, textarea {
 
 .liste {
   overflow-y: auto;
-  padding: 8px 8px 24px;
+  overscroll-behavior: contain;
+  padding: 6px;
   flex: 1;
   min-height: 0;
 }
@@ -122,8 +161,10 @@ button, input, select, textarea {
   letter-spacing: .08em;
   text-transform: uppercase;
   color: var(--text-leise);
-  padding: 14px 8px 6px;
+  padding: 12px 8px 5px;
 }
+
+.listen-titel:first-child { padding-top: 6px; }
 
 .eintrag {
   display: flex;
@@ -138,8 +179,13 @@ button, input, select, textarea {
   cursor: pointer;
 }
 
-.eintrag:hover { background: var(--flaeche); }
+.eintrag:hover,
+.eintrag.markiert { background: var(--flaeche); }
 .eintrag.aktiv { background: rgba(29, 78, 216, .09); }
+.eintrag:focus-visible {
+  outline: 2px solid var(--blau-hell);
+  outline-offset: -2px;
+}
 
 .eintrag .punkt {
   width: 10px;
@@ -757,24 +803,15 @@ button, input, select, textarea {
 
 /* ---------------------------------------------------------------- Schmale Fenster */
 
-.nur-schmal { display: none; }
-
 @media (max-width: 900px) {
-  .nur-schmal { display: inline-flex; }
-  .nur-breit { display: none; }
-
-  .seitenleiste {
-    position: absolute;
-    inset: 0 auto 0 0;
-    z-index: 25;
-    width: 300px;
-    max-width: 86%;
-    transform: translateX(-102%);
-    transition: transform .25s;
-    box-shadow: var(--schatten);
+  .suchtafel {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    width: auto;
+    max-width: none;
   }
 
-  .seitenleiste.offen { transform: none; }
   .tafel { width: 100%; }
   .kartenfeld.tafel-offen .kartensteuerung { right: 14px; }
   .legende { font-size: 11px; padding: 7px 10px; gap: 12px; }

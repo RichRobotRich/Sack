@@ -27,8 +27,10 @@ Koordinaten oder per Klick auf die Karte setzen.
 
 * **Zoomen** – Mausrad, die Knöpfe unten rechts, Doppelklick oder zwei Finger.
 * **Verschieben** – ziehen.
-* **Standort öffnen** – auf einen Marker oder auf einen Eintrag in der linken
-  Liste klicken. Über das Suchfeld lässt sich die Liste filtern.
+* **Standort öffnen** – auf einen Marker klicken, oder über die **Lupe** oben
+  links: bei leerem Suchfeld stehen dort alle Betriebssitze und Projekte,
+  Tippen filtert sie. Mit den Pfeiltasten durch die Treffer, mit Enter öffnen,
+  mit Escape oder einem Klick auf die Karte wieder schließen.
 * **Zurück zur Gesamtansicht** – der Knopf mit dem Pfeil unten rechts.
 
 ## Mitarbeiterbereich

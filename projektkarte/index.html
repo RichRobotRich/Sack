@@ -10,7 +10,13 @@
 <body>
 
 <header class="kopfzeile">
-  <button class="knopf leise nur-schmal" id="knopfListe" aria-label="Projektliste">&#9776;</button>
+  <button class="knopf-lupe" id="knopfSuche" aria-label="Projekte suchen"
+          aria-expanded="false" title="Projekte suchen">
+    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path>
+    </svg>
+  </button>
   <div class="marke">
     <img id="logo" src="logo.png" alt="" onload="this.classList.add('da')" onerror="this.remove()">
     <div class="titel" id="seitentitel">Unsere Projekte in Deutschland</div>
@@ -21,14 +27,16 @@
 
 <div class="inhalt">
 
-  <aside class="seitenleiste" id="seitenleiste">
-    <div class="suchfeld">
-      <input type="search" id="suche" placeholder="Projekt oder Ort suchen&hellip;" autocomplete="off">
-    </div>
-    <div class="liste" id="liste"></div>
-  </aside>
-
   <main class="kartenfeld" id="kartenfeld">
+
+    <div class="suchtafel" id="suchtafel" role="dialog" aria-label="Projekte suchen">
+      <div class="suchfeld">
+        <input type="search" id="suche" placeholder="Projekt oder Ort suchen&hellip;"
+               autocomplete="off" aria-controls="liste">
+      </div>
+      <div class="liste" id="liste"></div>
+    </div>
+
     <svg id="karte" role="img" aria-label="Karte von Deutschland mit unseren Projekten">
       <g id="ebene">
         <g id="ebeneLaender"></g>

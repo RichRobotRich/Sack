@@ -611,7 +611,7 @@
     if (leiste) leiste.remove();
   }
 
-  /* ------------------------------------------------------------ Seitenleiste */
+  /* ------------------------------------------------------------ Suche */
 
   var suchtext = '';
 
@@ -651,8 +651,8 @@
     return h('button', {
       class: 'eintrag' + (art === 'sitz' ? ' sitz' : '') + (ort.id === gewaehlteId ? ' aktiv' : ''),
       onclick: function () {
+        schliesseSuche();
         oeffneTafel(ort.id);
-        if (window.innerWidth <= 900) $('#seitenleiste').classList.remove('offen');
       }
     },
       h('span', { class: 'punkt' }),
@@ -661,14 +661,65 @@
         ort.ort ? h('span', { class: 'ort', text: ort.ort }) : null));
   }
 
+  var sucheOffen = false;
+
+  function oeffneSuche() {
+    sucheOffen = true;
+    $('#suchtafel').classList.add('offen');
+    $('#knopfSuche').setAttribute('aria-expanded', 'true');
+    var eingabe = $('#suche');
+    eingabe.focus();
+    eingabe.select();
+  }
+
+  function schliesseSuche() {
+    if (!sucheOffen) return;
+    sucheOffen = false;
+    $('#suchtafel').classList.remove('offen');
+    $('#knopfSuche').setAttribute('aria-expanded', 'false');
+  }
+
+  $('#knopfSuche').onclick = function () {
+    if (sucheOffen) schliesseSuche();
+    else oeffneSuche();
+  };
+
   $('#suche').addEventListener('input', function (e) {
     suchtext = e.target.value.trim();
     zeichneListe();
   });
 
-  $('#knopfListe').onclick = function () {
-    $('#seitenleiste').classList.toggle('offen');
-  };
+  /** Mit Pfeiltasten durch die Treffer, mit Enter öffnen. */
+  $('#suche').addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { schliesseSuche(); return; }
+
+    var treffer = Array.prototype.slice.call($('#liste').querySelectorAll('.eintrag'));
+    if (!treffer.length) return;
+    var jetzt = treffer.indexOf($('#liste').querySelector('.eintrag.markiert'));
+
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      var naechster = e.key === 'ArrowDown'
+        ? (jetzt + 1) % treffer.length
+        : (jetzt <= 0 ? treffer.length - 1 : jetzt - 1);
+      treffer.forEach(function (t) { t.classList.remove('markiert'); });
+      treffer[naechster].classList.add('markiert');
+      treffer[naechster].scrollIntoView({ block: 'nearest' });
+      return;
+    }
+
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      (treffer[jetzt >= 0 ? jetzt : 0]).click();
+    }
+  });
+
+  // Ein Klick neben die Tafel schließt sie.
+  document.addEventListener('pointerdown', function (e) {
+    if (!sucheOffen) return;
+    if ($('#suchtafel').contains(e.target) || $('#knopfSuche').contains(e.target)) return;
+    schliesseSuche();
+  });
 
   /* ------------------------------------------------------------ Detailtafel */
 
@@ -809,6 +860,7 @@
     }
     if (e.key !== 'Escape') return;
     if ($('#schleier').classList.contains('offen')) schliesseDialog();
+    else if (sucheOffen) schliesseSuche();
     else if (setzeModus) { beendeSetzen(); if (abbruchSetzen) abbruchSetzen(); }
     else schliesseTafel();
   });
