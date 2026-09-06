@@ -1,8 +1,21 @@
 # Projektkarte
 
-Eine Deutschlandkarte mit allen Projekten und den Betriebssitzen. Weiße Karte,
-blaue Standorte, zoom- und verschiebbar. Ein Klick auf einen Standort öffnet
-eine Seitentafel mit Titelbild, Eckdaten, Beschreibung und weiteren Bildern.
+Eine Deutschlandkarte mit allen Projekten, den Betriebssitzen und den
+Fernaufschaltungen. Weiße Karte, farbige Standorte, zoom- und verschiebbar. Ein
+Klick auf einen Standort öffnet eine Seitentafel mit Titelbild, Eckdaten,
+Beschreibung und weiteren Bildern.
+
+Es gibt drei Arten von Standorten:
+
+| Art | Marker | Eckdaten, mit denen ein neuer Eintrag startet |
+| --- | --- | --- |
+| Betriebssitz | dunkles Haus | Grundstücksfläche, Lagerbereich, Mitarbeiterzahl, Monteure, Kundendienst, Fahrzeuge |
+| Projekt | blauer Stift | Bauherr, Fertigstellung, Bauzeit, Gewerk |
+| Fernaufschaltung | türkiser Stift mit Funkzeichen | Anlagenart, Aufgeschaltet seit, Verbindung, Leitsystem, Störmeldung an, Wartungsvertrag |
+
+Fernaufschaltungen sind die Standorte, deren Anlagen wir aus der Ferne einsehen
+und steuern. Alle drei Arten funktionieren gleich – nur Farbe, Zeichen und die
+vorgeschlagenen Eckdaten unterscheiden sich, und auch die sind frei änderbar.
 
 Die Seite ist reines HTML, CSS und JavaScript – kein Build, kein Server, keine
 fremden Dienste. `projektkarte/index.html` lässt sich direkt im Browser öffnen.
@@ -40,15 +53,15 @@ Oben rechts, geschützt durch ein Kennwort. Das Standardkennwort ist
 
 Dort lassen sich
 
-* Projekte und Betriebssitze anlegen, bearbeiten und löschen,
+* Projekte, Betriebssitze und Fernaufschaltungen anlegen, bearbeiten und
+  löschen – je ein eigener Reiter,
 * die Position per Klick auf die Karte setzen,
 * ein Titelbild und beliebig viele weitere Bilder hochladen
   (werden automatisch auf 1600 px bzw. 1400 px verkleinert),
 * **Eckdaten frei zusammenstellen** – Bezeichnung und Wert sind Freitext,
-  Zeilen lassen sich hinzufügen, sortieren und entfernen. Neue Betriebssitze
-  starten mit Grundstücksfläche, Lagerbereich, Mitarbeiterzahl, Monteure,
-  Kundendienst und Fahrzeuge, Projekte mit Bauherr, Fertigstellung, Bauzeit
-  und Gewerk. Beides ist nur ein Vorschlag und vollständig änderbar,
+  Zeilen lassen sich hinzufügen, sortieren und entfernen. Womit eine neue Art
+  startet, steht in der Tabelle oben – nur ein Vorschlag und vollständig
+  änderbar,
 * die Überschrift der Seite ändern,
 * das Kennwort ändern,
 * alle Daten als JSON sichern und wieder einlesen.
@@ -76,8 +89,8 @@ Alle Einträge liegen im `localStorage` des Browsers (Schlüssel
 * Für die Übertragung auf einen anderen Rechner oder als Sicherung dient der
   Export als JSON-Datei.
 
-Sollen mehrere Leute gemeinsam pflegen, ist der nächste Schritt, Projekte und
-Betriebssitze in Supabase abzulegen (Tabellen plus Storage für die Bilder) und
+Sollen mehrere Leute gemeinsam pflegen, ist der nächste Schritt, die Standorte
+in Supabase abzulegen (Tabellen plus Storage für die Bilder) und
 `app.js` statt auf den `localStorage` auf die Datenbank zugreifen zu lassen.
 Der Aufbau der Daten ist bereits darauf ausgelegt – jeder Eintrag hat eine
 eigene `id`, die Eckdaten sind eine Liste aus Bezeichnung und Wert.

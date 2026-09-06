@@ -5,6 +5,8 @@
   --blau-hell: #3b82f6;
   --blau-dunkel: #172554;
   --sitz: #0f172a;
+  --fern: #0d9488;
+  --fern-hell: #14b8a6;
   --text: #0f172a;
   --text-leise: #64748b;
   --linie: #e2e8f0;
@@ -200,6 +202,8 @@ button, input, select, textarea {
   background: var(--sitz);
 }
 
+.eintrag.fernaufschaltung .punkt { background: var(--fern); }
+
 .eintrag .beschriftung {
   min-width: 0;
   display: flex;
@@ -263,8 +267,17 @@ button, input, select, textarea {
 .marker .stift { fill: var(--blau); }
 .marker .kern { fill: #fff; }
 .marker.sitz .stift { fill: var(--sitz); }
+.marker.fernaufschaltung .stift { fill: var(--fern); }
 .marker:hover .stift { fill: var(--blau-hell); }
 .marker.sitz:hover .stift { fill: #334155; }
+.marker.fernaufschaltung:hover .stift { fill: var(--fern-hell); }
+
+.marker .welle {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
 .marker.gewaehlt .stift { fill: var(--blau-dunkel); }
 
 .marker .name {
@@ -331,6 +344,7 @@ button, input, select, textarea {
 .legende span { display: flex; align-items: center; gap: 7px; }
 .legende i { width: 11px; height: 11px; border-radius: 50%; background: var(--blau); }
 .legende i.eckig { border-radius: 3px; background: var(--sitz); }
+.legende i.fern { background: var(--fern); }
 
 .hinweisleiste {
   position: absolute;
@@ -454,6 +468,7 @@ button, input, select, textarea {
 }
 
 .tafel-marke.sitz { color: var(--sitz); }
+.tafel-marke.fernaufschaltung { color: var(--fern); }
 
 .tafel h2 {
   margin: 0 0 4px;

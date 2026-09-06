@@ -66,12 +66,19 @@
     meldungsUhr = setTimeout(function () { m.classList.remove('sichtbar'); }, 2600);
   }
 
+  var TOENE = {
+    blau: ['#1d4ed8', '#60a5fa'],
+    dunkel: ['#0f172a', '#334155'],
+    tuerkis: ['#0f766e', '#2dd4bf']
+  };
+
   /** Farbiger Platzhalter, solange kein Bild hinterlegt ist. */
-  function platzhalter(text, dunkel) {
+  function platzhalter(text, ton) {
     var kuerzel = String(text || '?').trim().split(/\s+/).slice(0, 2)
       .map(function (w) { return w.charAt(0).toUpperCase(); }).join('');
-    var a = dunkel ? '#0f172a' : '#1d4ed8';
-    var b = dunkel ? '#334155' : '#60a5fa';
+    var farben = TOENE[ton] || TOENE.blau;
+    var a = farben[0];
+    var b = farben[1];
     var quelle = '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360">' +
       '<defs><linearGradient id="v" x1="0" y1="0" x2="1" y2="1">' +
       '<stop offset="0" stop-color="' + a + '"/><stop offset="1" stop-color="' + b + '"/>' +
@@ -82,7 +89,7 @@
   }
 
   function bildQuelle(objekt) {
-    return objekt.titelbild || platzhalter(objekt.name, objekt.art === 'sitz');
+    return objekt.titelbild || platzhalter(objekt.name, (ARTEN[objekt.art] || ARTEN.projekt).ton);
   }
 
   /* ------------------------------------------------------------ Kennwort */
@@ -131,9 +138,39 @@
 
   /* ------------------------------------------------------------ Daten */
 
-  var STANDARD_FELDER_PROJEKT = ['Bauherr', 'Fertigstellung', 'Bauzeit', 'Gewerk'];
-  var STANDARD_FELDER_SITZ = ['Grundstücksfläche', 'Lagerbereich', 'Mitarbeiterzahl',
-    'Monteure', 'Kundendienst', 'Fahrzeuge'];
+  /**
+   * Die drei Arten von Standorten. `schluessel` ist das Feld im Datensatz,
+   * `felder` sind die Eckdaten, mit denen ein neuer Eintrag startet - nur ein
+   * Vorschlag, im Editor lässt sich jede Zeile ändern.
+   */
+  var ARTEN = {
+    sitz: {
+      schluessel: 'sitze',
+      einzahl: 'Betriebssitz',
+      mehrzahl: 'Betriebssitze',
+      ton: 'dunkel',
+      felder: ['Grundstücksfläche', 'Lagerbereich', 'Mitarbeiterzahl',
+        'Monteure', 'Kundendienst', 'Fahrzeuge']
+    },
+    projekt: {
+      schluessel: 'projekte',
+      einzahl: 'Projekt',
+      mehrzahl: 'Projekte',
+      ton: 'blau',
+      felder: ['Bauherr', 'Fertigstellung', 'Bauzeit', 'Gewerk']
+    },
+    fernaufschaltung: {
+      schluessel: 'fernaufschaltungen',
+      einzahl: 'Fernaufschaltung',
+      mehrzahl: 'Fernaufschaltungen',
+      ton: 'tuerkis',
+      felder: ['Anlagenart', 'Aufgeschaltet seit', 'Verbindung', 'Leitsystem',
+        'Störmeldung an', 'Wartungsvertrag']
+    }
+  };
+
+  /** Die Liste im Datensatz, in der Einträge dieser Art stehen. */
+  function listeFuer(art) { return daten[ARTEN[art].schluessel]; }
 
   function demodaten() {
     return {
@@ -177,6 +214,11 @@
           bilder: []
         }
       ],
+      fernaufschaltungen: [
+        beispielAufschaltung('Heizzentrale Nordstadt', 'Göttingen', 51.5413, 9.9158),
+        beispielAufschaltung('Lüftung Stadthalle', 'Detmold', 51.9375, 8.8785),
+        beispielAufschaltung('Kälteanlage Rechenzentrum', 'Hannover', 52.3759, 9.7320)
+      ],
       projekte: [
         beispielProjekt('Wohnquartier Nordpark', 'Hamburg', 53.5511, 9.9937, '2024'),
         beispielProjekt('Verwaltungsgebäude Mitte', 'Berlin', 52.5200, 13.4050, '2023'),
@@ -204,6 +246,24 @@
     };
   }
 
+  function beispielAufschaltung(name, ort, lat, lon) {
+    return {
+      id: neueId(), name: name, ort: ort, lat: lat, lon: lon, titelbild: '',
+      fakten: [
+        { label: 'Anlagenart', wert: 'Heizung und Lüftung' },
+        { label: 'Aufgeschaltet seit', wert: '2023' },
+        { label: 'Verbindung', wert: 'VPN über Mobilfunk' },
+        { label: 'Leitsystem', wert: 'Beispiel-GLT' },
+        { label: 'Störmeldung an', wert: 'Kundendienst Paderborn' },
+        { label: 'Wartungsvertrag', wert: 'ja' }
+      ],
+      text: 'Beispiel-Fernaufschaltung. Die Anlage lässt sich aus der Ferne ' +
+        'einsehen und steuern. Beschreibung, Titelbild und Eckdaten werden im ' +
+        'Mitarbeiterbereich gepflegt.',
+      bilder: []
+    };
+  }
+
   /** Sorgt dafür, dass auch ältere oder eingelesene Daten vollständig sind. */
   function raeumeAuf(roh) {
     var d = roh && typeof roh === 'object' ? roh : {};
@@ -214,7 +274,10 @@
         passwortHash: (d.einstellungen && d.einstellungen.passwortHash) || null
       },
       sitze: (Array.isArray(d.sitze) ? d.sitze : []).map(eintragAufraeumen),
-      projekte: (Array.isArray(d.projekte) ? d.projekte : []).map(eintragAufraeumen)
+      projekte: (Array.isArray(d.projekte) ? d.projekte : []).map(eintragAufraeumen),
+      // Ältere Sicherungen kennen die Fernaufschaltungen noch nicht.
+      fernaufschaltungen: (Array.isArray(d.fernaufschaltungen) ? d.fernaufschaltungen : [])
+        .map(eintragAufraeumen)
     };
     return sauber;
   }
@@ -262,10 +325,18 @@
     try { return (localStorage.getItem(SPEICHER) || '').length; } catch (e) { return 0; }
   }
 
-  /** Alle Einträge mit Kennzeichnung ihrer Art, Sitze zuerst. */
+  /**
+   * Alle Einträge mit Kennzeichnung ihrer Art. Die Reihenfolge bestimmt, was
+   * auf der Karte obenauf liegt - die Betriebssitze kommen deshalb zuletzt.
+   */
   function alleOrte() {
-    return daten.sitze.map(function (s) { return Object.assign({ art: 'sitz' }, s); })
-      .concat(daten.projekte.map(function (p) { return Object.assign({ art: 'projekt' }, p); }));
+    var orte = [];
+    ['fernaufschaltung', 'projekt', 'sitz'].forEach(function (art) {
+      listeFuer(art).forEach(function (e) {
+        orte.push(Object.assign({ art: art }, e));
+      });
+    });
+    return orte;
   }
 
   function findeOrt(id) {
@@ -323,7 +394,14 @@
         class: 'stift',
         d: 'M0 0 C -3.2 -7.5 -9 -10.5 -9 -17 A 9 9 0 1 1 9 -17 C 9 -10.5 3.2 -7.5 0 0 Z'
       }));
-      teile.push(svg('circle', { class: 'kern', cx: 0, cy: -17, r: 3.6 }));
+      if (art === 'fernaufschaltung') {
+        // Funkwellen - die Anlage wird aus der Ferne erreicht.
+        teile.push(svg('circle', { class: 'kern', cx: 0, cy: -14.6, r: 1.7 }));
+        teile.push(svg('path', { class: 'welle', d: 'M-2.7 -17.4 A 3.6 3.6 0 0 1 2.7 -17.4' }));
+        teile.push(svg('path', { class: 'welle', d: 'M-5 -19.4 A 6.6 6.6 0 0 1 5 -19.4' }));
+      } else {
+        teile.push(svg('circle', { class: 'kern', cx: 0, cy: -17, r: 3.6 }));
+      }
     }
     teile.push(svg('circle', { class: 'treffer', cx: 0, cy: -15, r: 17 }));
     return teile;
@@ -334,8 +412,7 @@
     alleOrte().forEach(function (ort) {
       var p = projiziere(ort.lat, ort.lon);
       var gruppe = svg('g', {
-        class: 'marker' + (ort.art === 'sitz' ? ' sitz' : '') +
-          (ort.id === gewaehlteId ? ' gewaehlt' : ''),
+        class: 'marker ' + ort.art + (ort.id === gewaehlteId ? ' gewaehlt' : ''),
         'data-id': ort.id,
         'data-x': p.x,
         'data-y': p.y,
@@ -624,32 +701,33 @@
   function zeichneListe() {
     var behaelter = $('#liste');
     behaelter.textContent = '';
+    var etwasGefunden = false;
 
-    var sitze = daten.sitze.filter(function (s) { return passt(s); });
-    var projekte = daten.projekte.filter(function (p) { return passt(p); })
-      .slice().sort(function (a, b) { return a.name.localeCompare(b.name, 'de'); });
+    ['sitz', 'projekt', 'fernaufschaltung'].forEach(function (art) {
+      var treffer = listeFuer(art).filter(passt);
+      if (art !== 'sitz') {
+        treffer = treffer.slice().sort(function (a, b) {
+          return a.name.localeCompare(b.name, 'de');
+        });
+      }
+      if (!treffer.length) return;
+      etwasGefunden = true;
 
-    if (!sitze.length && !projekte.length) {
-      behaelter.appendChild(h('div', { class: 'leer', text: 'Nichts gefunden.' }));
-      return;
-    }
-
-    if (sitze.length) {
-      behaelter.appendChild(h('div', { class: 'listen-titel', text: 'Betriebssitze' }));
-      sitze.forEach(function (s) { behaelter.appendChild(listenEintrag(s, 'sitz')); });
-    }
-    if (projekte.length) {
       behaelter.appendChild(h('div', {
         class: 'listen-titel',
-        text: 'Projekte (' + projekte.length + ')'
+        text: ARTEN[art].mehrzahl + (art === 'sitz' ? '' : ' (' + treffer.length + ')')
       }));
-      projekte.forEach(function (p) { behaelter.appendChild(listenEintrag(p, 'projekt')); });
+      treffer.forEach(function (e) { behaelter.appendChild(listenEintrag(e, art)); });
+    });
+
+    if (!etwasGefunden) {
+      behaelter.appendChild(h('div', { class: 'leer', text: 'Nichts gefunden.' }));
     }
   }
 
   function listenEintrag(ort, art) {
     return h('button', {
-      class: 'eintrag' + (art === 'sitz' ? ' sitz' : '') + (ort.id === gewaehlteId ? ' aktiv' : ''),
+      class: 'eintrag ' + art + (ort.id === gewaehlteId ? ' aktiv' : ''),
       onclick: function () {
         schliesseSuche();
         oeffneTafel(ort.id);
@@ -738,8 +816,8 @@
 
     var text = h('div', { class: 'tafel-text' });
     text.appendChild(h('span', {
-      class: 'tafel-marke' + (ort.art === 'sitz' ? ' sitz' : ''),
-      text: ort.art === 'sitz' ? 'Betriebssitz' : 'Projekt'
+      class: 'tafel-marke ' + ort.art,
+      text: ARTEN[ort.art].einzahl
     }));
     text.appendChild(h('h2', { text: ort.name }));
     if (ort.ort) text.appendChild(h('div', { class: 'unterzeile', text: ort.ort }));
@@ -901,7 +979,7 @@
   /* ------------------------------------------------------------ Anmeldung */
 
   $('#knopfMitarbeiter').onclick = function () {
-    if (freigegeben) oeffneVerwaltung('projekte');
+    if (freigegeben) oeffneVerwaltung('projekt');
     else frageKennwort();
   };
 
@@ -921,7 +999,7 @@
         schalteFrei(true);
         schliesseDialog();
         melde('Mitarbeiterbereich freigeschaltet');
-        oeffneVerwaltung('projekte');
+        oeffneVerwaltung('projekt');
       });
     }
 
@@ -952,17 +1030,16 @@
     function baue() {
       inhalt.textContent = '';
       var leiste = h('div', { class: 'reiter', style: 'margin:-20px -20px 16px;padding:0 4px;' });
-      [['projekte', 'Projekte'], ['sitze', 'Betriebssitze'], ['einstellungen', 'Einstellungen']]
-        .forEach(function (r) {
-          leiste.appendChild(h('button', {
-            class: reiter === r[0] ? 'aktiv' : '',
-            onclick: function () { reiter = r[0]; baue(); }
-          }, r[1]));
-        });
+      ['projekt', 'sitz', 'fernaufschaltung', 'einstellungen'].forEach(function (r) {
+        leiste.appendChild(h('button', {
+          class: reiter === r ? 'aktiv' : '',
+          onclick: function () { reiter = r; baue(); }
+        }, r === 'einstellungen' ? 'Einstellungen' : ARTEN[r].mehrzahl));
+      });
       inhalt.appendChild(leiste);
 
       if (reiter === 'einstellungen') inhalt.appendChild(baueEinstellungen());
-      else inhalt.appendChild(baueEintragsliste(reiter === 'sitze' ? 'sitz' : 'projekt'));
+      else inhalt.appendChild(baueEintragsliste(reiter));
     }
 
     baue();
@@ -988,17 +1065,18 @@
   }
 
   function baueEintragsliste(art) {
-    var eintraege = art === 'sitz' ? daten.sitze : daten.projekte;
+    var eintraege = listeFuer(art);
     var behaelter = h('div');
 
     behaelter.appendChild(h('div', {
       style: 'display:flex;align-items:center;gap:12px;margin-bottom:14px;'
     },
       h('div', { style: 'flex:1;color:var(--text-leise);font-size:13px;' },
-        eintraege.length + (art === 'sitz' ? ' Betriebssitze' : ' Projekte')),
+        eintraege.length + ' ' + (eintraege.length === 1
+          ? ARTEN[art].einzahl : ARTEN[art].mehrzahl)),
       h('button', {
         class: 'knopf haupt', onclick: function () { oeffneEditor(art, leererEintrag(art), true); }
-      }, art === 'sitz' ? '+ Betriebssitz' : '+ Projekt')));
+      }, '+ ' + ARTEN[art].einzahl)));
 
     if (!eintraege.length) {
       behaelter.appendChild(h('div', { class: 'leer', text: 'Noch nichts angelegt.' }));
@@ -1030,7 +1108,7 @@
   }
 
   function leererEintrag(art) {
-    var felder = art === 'sitz' ? STANDARD_FELDER_SITZ : STANDARD_FELDER_PROJEKT;
+    var felder = ARTEN[art].felder;
     return {
       id: neueId(), name: '', ort: '', lat: 51.2, lon: 10.4, titelbild: '',
       fakten: felder.map(function (f) { return { label: f, wert: '' }; }),
@@ -1039,7 +1117,7 @@
   }
 
   function frageLoeschen(art, nummer) {
-    var liste = art === 'sitz' ? daten.sitze : daten.projekte;
+    var liste = listeFuer(art);
     var eintrag = liste[nummer];
     zeigeDialog({
       titel: 'Wirklich löschen?',
@@ -1048,7 +1126,7 @@
           'Das lässt sich nicht rückgängig machen.'
       }),
       knoepfe: [
-        h('button', { class: 'knopf', onclick: function () { oeffneVerwaltung(art === 'sitz' ? 'sitze' : 'projekte'); } }, 'Abbrechen'),
+        h('button', { class: 'knopf', onclick: function () { oeffneVerwaltung(art); } }, 'Abbrechen'),
         h('button', {
           class: 'knopf gefahr', onclick: function () {
             liste.splice(nummer, 1);
@@ -1057,7 +1135,7 @@
             zeichneMarker();
             zeichneListe();
             melde('Gelöscht');
-            oeffneVerwaltung(art === 'sitz' ? 'sitze' : 'projekte');
+            oeffneVerwaltung(art);
           }
         }, 'Endgültig löschen')
       ]
@@ -1109,7 +1187,6 @@
   /* ------------------------------------------------------------ Editor */
 
   function oeffneEditor(art, entwurf, istNeu) {
-    var zurueckReiter = art === 'sitz' ? 'sitze' : 'projekte';
 
     var nameFeld = h('input', { type: 'text', value: entwurf.name, placeholder: 'z. B. Wohnquartier Nordpark' });
     var ortFeld = h('input', { type: 'text', value: entwurf.ort, placeholder: 'z. B. Hamburg, Hamburg' });
@@ -1128,7 +1205,7 @@
     /* Titelbild */
     var titelVorschau = h('img', {
       class: 'vorschau-titelbild', alt: '',
-      src: entwurf.titelbild || platzhalter(entwurf.name || '?', art === 'sitz')
+      src: entwurf.titelbild || platzhalter(entwurf.name || '?', ARTEN[art].ton)
     });
     var titelWaehler = dateiWaehler(false, function (dateien) {
       leseBild(dateien[0], 1600).then(function (quelle) {
@@ -1226,7 +1303,7 @@
       entwurf.bilder = bilderAuslesen();
       if (!entwurf.name) { melde('Bitte einen Namen eintragen.'); nameFeld.focus(); return; }
 
-      var liste = art === 'sitz' ? daten.sitze : daten.projekte;
+      var liste = listeFuer(art);
       var nummer = -1;
       liste.forEach(function (e, i) { if (e.id === entwurf.id) nummer = i; });
       if (nummer >= 0) liste[nummer] = eintragAufraeumen(entwurf);
@@ -1237,12 +1314,11 @@
       zeichneListe();
       if (gewaehlteId === entwurf.id) oeffneTafel(entwurf.id);
       melde(istNeu ? 'Angelegt' : 'Gespeichert');
-      oeffneVerwaltung(zurueckReiter);
+      oeffneVerwaltung(art);
     }
 
     zeigeDialog({
-      titel: (istNeu ? 'Neu anlegen: ' : 'Bearbeiten: ') +
-        (art === 'sitz' ? 'Betriebssitz' : 'Projekt'),
+      titel: (istNeu ? 'Neu anlegen: ' : 'Bearbeiten: ') + ARTEN[art].einzahl,
       breit: true,
       inhalt: [
         h('div', { class: 'reihe' },
@@ -1276,7 +1352,7 @@
           h('button', {
             class: 'knopf leise', onclick: function () {
               entwurf.titelbild = '';
-              titelVorschau.src = platzhalter(nameFeld.value || '?', art === 'sitz');
+              titelVorschau.src = platzhalter(nameFeld.value || '?', ARTEN[art].ton);
             }
           }, 'Entfernen')),
         titelWaehler,
@@ -1302,7 +1378,7 @@
       ],
       knoepfe: [
         h('button', {
-          class: 'knopf', onclick: function () { oeffneVerwaltung(zurueckReiter); }
+          class: 'knopf', onclick: function () { oeffneVerwaltung(art); }
         }, 'Abbrechen'),
         h('button', { class: 'knopf haupt', onclick: speichereEintrag }, 'Speichern')
       ]
@@ -1397,8 +1473,10 @@
         zeigeDialog({
           titel: 'Daten einlesen',
           inhalt: h('p', {
-            text: 'Die Datei enthält ' + eingelesen.sitze.length + ' Betriebssitze und ' +
-              eingelesen.projekte.length + ' Projekte. Der jetzige Stand wird dabei ersetzt.'
+            text: 'Die Datei enthält ' + eingelesen.sitze.length + ' Betriebssitze, ' +
+              eingelesen.projekte.length + ' Projekte und ' +
+              eingelesen.fernaufschaltungen.length + ' Fernaufschaltungen. ' +
+              'Der jetzige Stand wird dabei ersetzt.'
           }),
           knoepfe: [
             h('button', { class: 'knopf', onclick: function () { oeffneVerwaltung('einstellungen'); } }, 'Abbrechen'),
@@ -1434,8 +1512,8 @@
           zeigeDialog({
             titel: 'Auf Demodaten zurücksetzen?',
             inhalt: h('p', {
-              text: 'Alle Projekte, Betriebssitze und Bilder werden gelöscht und durch die ' +
-                'Beispieldaten ersetzt. Vorher am besten exportieren.'
+              text: 'Alle Projekte, Betriebssitze, Fernaufschaltungen und Bilder werden ' +
+                'gelöscht und durch die Beispieldaten ersetzt. Vorher am besten exportieren.'
             }),
             knoepfe: [
               h('button', { class: 'knopf', onclick: function () { oeffneVerwaltung('einstellungen'); } }, 'Abbrechen'),
