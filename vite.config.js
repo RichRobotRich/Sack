@@ -12,7 +12,7 @@ export default defineConfig({
     // App-Store-Eintrag ersetzt das nicht.
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      includeAssets: ['favicon-32.png', 'favicon-48.png', 'apple-touch-icon.png'],
       manifest: {
         name: 'Leniger Planung',
         short_name: 'Leniger',

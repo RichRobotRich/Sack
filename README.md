@@ -95,7 +95,8 @@ src/components/          gemeinsame Komponenten, ui/ ist shadcn/ui
 src/lib/allPages.js      zentrale Seitenliste für Navigation und Rollen
 supabase/migrations/     Datenbankschema
 supabase/functions/      Edge Functions
-scripts/                 Schema-Generator und Seed
+assets/logo-source.png   Vorlage für Logo und Symbole
+scripts/                 Generatoren (Schema, Symbole) und Seed
 ```
 
 ### Datenzugriff
@@ -166,8 +167,20 @@ portiert, weil sie das Frontend nicht aufruft:
 | `webhookPlanProSync_fix` | einmaliges Reparaturskript | dürfte hinfällig sein |
 | `clearFutureVehicles` | Aufräumaktion für Fahrzeugzuordnungen | bei Bedarf portieren |
 
-Ebenfalls offen: Das Logo zeigt noch auf den Storage der alten Umgebung, siehe
-`src/lib/branding.js`.
+
+### Logo und Symbole
+
+Alle Bildformate entstehen aus einer Vorlage:
+
+```bash
+node scripts/generate-icons.mjs
+```
+
+Neues Logo? `assets/logo-source.png` austauschen (quadratisch, 1024x1024, mit
+transparenten Ecken) und das Skript laufen lassen. Es erzeugt das
+freigestellte Zeichen für die Kopfzeile sowie die Symbole für Android, iOS und
+den Browser-Tab – die drei Formate haben unterschiedliche Anforderungen
+(Transparenz, randlos, deckend), deshalb lohnt der Generator.
 
 ## Befehle
 
