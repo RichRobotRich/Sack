@@ -56,14 +56,23 @@ freigeben.
 
 ### 4. Beispieldaten (optional)
 
+Am einfachsten `supabase/seed.sql` im SQL-Editor von Supabase einfügen und
+ausführen – dafür wird nichts installiert.
+
+Alternativ mit Node:
+
 ```bash
 SUPABASE_URL=https://<projekt>.supabase.co \
 SUPABASE_SERVICE_ROLE_KEY=<service-role-key> \
 node scripts/seed.mjs
 ```
 
-Legt Rollen, Mitarbeiter, Fahrzeuge, Baustellen und eine Wocheneinteilung an.
-Das Skript **leert die betroffenen Tabellen vorher** – nur auf einer
+Beide Wege legen dasselbe an: Rollen, Mitarbeiter, Fahrzeuge, Baustellen und
+eine Wocheneinteilung. Die SQL-Datei wird aus dem Skript erzeugt
+(`node scripts/generate-seed-sql.mjs > supabase/seed.sql`), damit beide nicht
+auseinanderlaufen.
+
+**Beide leeren die betroffenen Tabellen vorher** – nur auf einer
 Entwicklungsdatenbank ausführen.
 
 ### 5. Edge Functions
