@@ -177,3 +177,35 @@ npm run build      # Produktions-Build nach dist/
 npm run preview    # Build lokal ansehen
 npm run lint       # ESLint
 ```
+
+## Installation auf den Geräten
+
+Die App ist eine installierbare PWA – am Rechner wie am Telefon dieselbe
+Anwendung, ohne getrennte Codebasis.
+
+| Gerät | Weg |
+| --- | --- |
+| Windows / macOS (Chrome, Edge) | Installationssymbol in der Adressleiste |
+| Android | „App installieren" im Browsermenü |
+| iPhone / iPad | Safari öffnen → Teilen → „Zum Home-Bildschirm" |
+
+Danach startet die App im eigenen Fenster ohne Browserleiste. Erscheint eine
+neue Version, meldet sich unten ein Hinweis mit „Jetzt aktualisieren"; der
+Neustart passiert bewusst erst auf Klick, damit er keine laufende Eingabe
+abbricht.
+
+Voraussetzung ist HTTPS – über `localhost` funktioniert es zum Testen auch.
+
+Planungsdaten werden **nicht** zwischengespeichert: Aufrufe an Datenbank und
+Anmeldung laufen immer übers Netz. Eine veraltete Einteilung anzuzeigen wäre
+schlimmer als eine Fehlermeldung. Zwischengespeichert wird nur die Programm-
+hülle, damit der Start schnell ist.
+
+### App Store
+
+Ein Eintrag im App Store ist damit **nicht** abgedeckt: Apple nimmt keine
+Web-Apps auf. Dafür bräuchte es eine native Hülle (z. B.
+[Capacitor](https://capacitorjs.com), das denselben Code weiterverwendet) und
+ein Apple-Developer-Konto. Für eine reine Firmen-App ist die Installation über
+Safari meist der einfachere Weg – kein Prüfverfahren, keine Jahresgebühr,
+Updates sind sofort bei allen aktiv.

@@ -13,6 +13,7 @@ import EarlyShiftPage from './pages/EarlyShiftPage';
 import AzubiManagement from './pages/AzubiManagement';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import UpdatePrompt from '@/components/UpdatePrompt';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -93,6 +94,7 @@ function App() {
           <AppRoutes />
         </Router>
         <Toaster />
+        <UpdatePrompt />
       </QueryClientProvider>
     </AuthProvider>
   )
