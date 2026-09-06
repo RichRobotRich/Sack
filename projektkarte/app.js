@@ -69,7 +69,7 @@
   var TOENE = {
     blau: ['#1d4ed8', '#60a5fa'],
     dunkel: ['#0f172a', '#334155'],
-    tuerkis: ['#0f766e', '#2dd4bf']
+    rot: ['#991b1b', '#f87171']
   };
 
   /** Farbiger Platzhalter, solange kein Bild hinterlegt ist. */
@@ -163,7 +163,7 @@
       schluessel: 'fernaufschaltungen',
       einzahl: 'Fernaufschaltung',
       mehrzahl: 'Fernaufschaltungen',
-      ton: 'tuerkis',
+      ton: 'rot',
       felder: ['Anlagenart', 'Aufgeschaltet seit', 'Verbindung', 'Leitsystem',
         'Störmeldung an', 'Wartungsvertrag']
     }
@@ -361,15 +361,178 @@
 
   var karte = $('#karte');
   var ebene = $('#ebene');
+  var ebeneKacheln = $('#ebeneKacheln');
   var ebeneLaender = $('#ebeneLaender');
   var ebeneMarker = $('#ebeneMarker');
 
   var ansicht = { x: 0, y: 0, k: 1 };
-  var K_MIN = 0.7, K_MAX = 16;
+  var K_MIN = 0.7, K_MAX = 4000;
   var gewaehlteId = null;
   var setzeModus = null;   // Rückruf, wenn eine Position auf der Karte gewählt wird
 
   karte.setAttribute('viewBox', '0 0 ' + G.w + ' ' + G.h);
+
+  /* ---- Straßenkarte
+   *
+   * Die Umrisse sind mercator-projiziert und damit dasselbe Koordinatensystem,
+   * das auch Kartenkacheln benutzen - die Kacheln passen deshalb ohne Umrechnung
+   * darüber. Sie liegen in derselben verschobenen Ebene wie alles andere, also
+   * muss beim Zoomen nichts nachgeführt werden.
+   *
+   * Ab KACHEL_AB wird umgeschaltet: darunter die weiße Karte, darüber die
+   * Straßen. Lässt sich keine Kachel laden - kein Netz, oder die Seite läuft
+   * in einer Umgebung, die fremde Bilder blockiert -, bleibt es bei der weißen
+   * Karte, und der Zoom funktioniert trotzdem.
+   */
+  var KACHEL_QUELLE = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+  var KACHEL_AB = 9;          // Kachel-Zoomstufe, ab der Straßen erscheinen
+  var KACHEL_MAX = 19;
+  var kachelnMoeglich = true;
+  var kachelnAn = false;
+  var kachelGeladen = false;
+  var kachelFehlschlaege = 0;
+  var kachelLauf = null;
+
+  /** Bildpunkte je Karteneinheit - abhängig von der Größe des Kartenfelds. */
+  function punkteJeEinheit() {
+    var r = karte.getBoundingClientRect();
+    if (!r.width || !r.height) return 1;
+    return Math.min(r.width / G.w, r.height / G.h);
+  }
+
+  /** Die Kachel-Zoomstufe, bei der eine Kachel etwa 256 Bildpunkte groß ist. */
+  function kachelZoom() {
+    var z = Math.log(360 * G.scale * punkteJeEinheit() * ansicht.k / 256) / Math.LN2;
+    return Math.max(0, Math.min(KACHEL_MAX, Math.round(z)));
+  }
+
+  /** Der sichtbare Ausschnitt in Karteneinheiten, ohne Verschiebung. */
+  function sichtbarerBereich() {
+    var r = karte.getBoundingClientRect();
+    var a = zuKarte(r.left, r.top);
+    var b = zuKarte(r.right, r.bottom);
+    return {
+      x0: (a.x - ansicht.x) / ansicht.k,
+      y0: (a.y - ansicht.y) / ansicht.k,
+      x1: (b.x - ansicht.x) / ansicht.k,
+      y1: (b.y - ansicht.y) / ansicht.k
+    };
+  }
+
+  /** Waagerechte Kachelnummer zu einer Karteneinheit und umgekehrt. */
+  function xZuKachel(x, teile) {
+    return ((x / G.scale + G.minX) + 180) / 360 * teile;
+  }
+
+  function kachelZuX(tx, teile) {
+    return (tx / teile * 360 - 180 - G.minX) * G.scale;
+  }
+
+  function yZuKachel(y, teile) {
+    var merc = G.maxY - y / G.scale;
+    return (1 - merc / 180) / 2 * teile;
+  }
+
+  function kachelZuY(ty, teile) {
+    return (G.maxY - 180 * (1 - 2 * ty / teile)) * G.scale;
+  }
+
+  function zeichneKacheln() {
+    var z = kachelZoom();
+
+    if (!kachelnMoeglich) {
+      // Ohne Kacheln bleibt die weiße Karte - beim Hineinzoomen erklärt ein
+      // Hinweis, warum hier keine Straßen kommen.
+      $('#kartenhinweis').hidden = z < KACHEL_AB;
+      return;
+    }
+
+    var anZeigen = z >= KACHEL_AB;
+    if (anZeigen !== kachelnAn) {
+      kachelnAn = anZeigen;
+      karte.classList.toggle('mit-strassen', anZeigen);
+      $('#kartenherkunft').hidden = !anZeigen;
+      $('#kartenhinweis').hidden = true;
+    }
+    if (!anZeigen) { ebeneKacheln.textContent = ''; return; }
+
+    var teile = Math.pow(2, z);
+    var kante = 360 * G.scale / teile;
+    var b = sichtbarerBereich();
+
+    var von_x = Math.max(0, Math.floor(xZuKachel(b.x0, teile)));
+    var bis_x = Math.min(teile - 1, Math.floor(xZuKachel(b.x1, teile)));
+    var von_y = Math.max(0, Math.floor(yZuKachel(b.y0, teile)));
+    var bis_y = Math.min(teile - 1, Math.floor(yZuKachel(b.y1, teile)));
+    if (bis_x < von_x || bis_y < von_y) return;
+    // Notbremse, falls die Rechnung durch eine seltsame Fenstergröße entgleist.
+    if ((bis_x - von_x + 1) * (bis_y - von_y + 1) > 240) return;
+
+    // Je Zoomstufe eine eigene Gruppe: die alte bleibt stehen, bis die neue
+    // geladen ist, sonst blitzt beim Zoomen der weiße Untergrund durch.
+    var gruppe = ebeneKacheln.querySelector('[data-z="' + z + '"]');
+    if (!gruppe) {
+      gruppe = svg('g', { 'data-z': z });
+      ebeneKacheln.appendChild(gruppe);
+    }
+
+    var gebraucht = {};
+    for (var tx = von_x; tx <= bis_x; tx++) {
+      for (var ty = von_y; ty <= bis_y; ty++) {
+        var schluessel = tx + '_' + ty;
+        gebraucht[schluessel] = true;
+        if (gruppe.querySelector('[data-k="' + schluessel + '"]')) continue;
+
+        var bild = svg('image', {
+          'data-k': schluessel,
+          class: 'kachel',
+          x: kachelZuX(tx, teile),
+          y: kachelZuY(ty, teile),
+          // Winzige Überlappung, sonst blitzen die Fugen zwischen den Kacheln.
+          width: kante * 1.002,
+          height: kante * 1.002
+        });
+        bild.addEventListener('load', function () { kachelGeladen = true; });
+        bild.addEventListener('error', kachelFehler);
+        bild.setAttributeNS('http://www.w3.org/1999/xlink', 'href', kachelUrl(z, tx, ty));
+        bild.setAttribute('href', kachelUrl(z, tx, ty));
+        gruppe.appendChild(bild);
+      }
+    }
+
+    // Kacheln außerhalb des Ausschnitts wieder freigeben.
+    Array.prototype.slice.call(gruppe.children).forEach(function (bild) {
+      if (!gebraucht[bild.getAttribute('data-k')]) bild.remove();
+    });
+
+    clearTimeout(kachelLauf);
+    kachelLauf = setTimeout(function () {
+      Array.prototype.slice.call(ebeneKacheln.children).forEach(function (g) {
+        if (g.getAttribute('data-z') !== String(z)) g.remove();
+      });
+    }, 400);
+  }
+
+  function kachelUrl(z, x, y) {
+    return KACHEL_QUELLE.replace('{z}', z).replace('{x}', x).replace('{y}', y);
+  }
+
+  /**
+   * Einzelne Aussetzer kommen vor - dann verschwindet nur diese Kachel. Kam
+   * dagegen noch nie eine an, gibt es keine Straßenkarte (kein Netz, oder die
+   * Umgebung lässt keine fremden Bilder zu) und die weiße Karte bleibt.
+   */
+  function kachelFehler(e) {
+    if (kachelGeladen) { e.target.remove(); return; }
+    if (++kachelFehlschlaege < 3) { e.target.remove(); return; }
+
+    kachelnMoeglich = false;
+    kachelnAn = false;
+    ebeneKacheln.textContent = '';
+    karte.classList.remove('mit-strassen');
+    $('#kartenherkunft').hidden = true;
+    $('#kartenhinweis').hidden = kachelZoom() < KACHEL_AB;
+  }
 
   function zeichneLaender() {
     G.states.forEach(function (land) {
@@ -450,10 +613,19 @@
     });
   }
 
+  var kachelBild = 0;
+
   function wendeAn() {
     ebene.setAttribute('transform',
       'translate(' + ansicht.x + ' ' + ansicht.y + ') scale(' + ansicht.k + ')');
     setzeMarkerGroesse();
+
+    if (!kachelBild) {
+      kachelBild = requestAnimationFrame(function () {
+        kachelBild = 0;
+        zeichneKacheln();
+      });
+    }
   }
 
   function begrenze() {
@@ -634,13 +806,13 @@
 
   karte.addEventListener('wheel', function (e) {
     e.preventDefault();
-    var faktor = Math.pow(1.0016, -e.deltaY * (e.deltaMode === 1 ? 16 : 1));
+    var faktor = Math.pow(1.0025, -e.deltaY * (e.deltaMode === 1 ? 16 : 1));
     zoomeAufPunkt(faktor, e.clientX, e.clientY);
   }, { passive: false });
 
   karte.addEventListener('dblclick', function (e) {
     if (setzeModus) return;
-    zoomeAufPunkt(1.8, e.clientX, e.clientY);
+    zoomeAufPunkt(2.2, e.clientX, e.clientY);
   });
 
   karte.addEventListener('click', function (e) {
@@ -659,8 +831,8 @@
     if (e.target === karte || e.target.classList.contains('land')) schliesseTafel();
   });
 
-  $('#knopfPlus').onclick = function () { zoomeMittig(1.5); };
-  $('#knopfMinus').onclick = function () { zoomeMittig(1 / 1.5); };
+  $('#knopfPlus').onclick = function () { zoomeMittig(2); };
+  $('#knopfMinus').onclick = function () { zoomeMittig(0.5); };
   $('#knopfHeim').onclick = ganzeKarte;
 
   /* ---- Position auf der Karte wählen */
@@ -878,7 +1050,7 @@
 
     zeichneMarker();
     zeichneListe();
-    flieg(ort.lat, ort.lon, Math.max(ansicht.k, 2.8));
+    flieg(ort.lat, ort.lon, Math.max(ansicht.k, 24));
   }
 
   function schliesseTafel() {

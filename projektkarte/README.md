@@ -11,7 +11,7 @@ Es gibt drei Arten von Standorten:
 | --- | --- | --- |
 | Betriebssitz | dunkles Haus | Grundstücksfläche, Lagerbereich, Mitarbeiterzahl, Monteure, Kundendienst, Fahrzeuge |
 | Projekt | blauer Stift | Bauherr, Fertigstellung, Bauzeit, Gewerk |
-| Fernaufschaltung | türkiser Stift mit Funkzeichen | Anlagenart, Aufgeschaltet seit, Verbindung, Leitsystem, Störmeldung an, Wartungsvertrag |
+| Fernaufschaltung | roter Stift mit Funkzeichen | Anlagenart, Aufgeschaltet seit, Verbindung, Leitsystem, Störmeldung an, Wartungsvertrag |
 
 Fernaufschaltungen sind die Standorte, deren Anlagen wir aus der Ferne einsehen
 und steuern. Alle drei Arten funktionieren gleich – nur Farbe, Zeichen und die
@@ -36,9 +36,36 @@ vereinfacht. `app.js` rechnet Längen- und Breitengrad mit denselben Parametern
 in Kartenkoordinaten um – neue Standorte lassen sich deshalb einfach über ihre
 Koordinaten oder per Klick auf die Karte setzen.
 
+## Straßen ab einer gewissen Zoomstufe
+
+Bis etwa zur Regionalebene bleibt es bei der weißen Karte aus den eingebauten
+Umrissen. Wird weiter hineingezoomt (Kachelstufe 9 und tiefer), legt sich
+darüber eine Straßenkarte aus Kartenkacheln, und von den Bundesländern bleiben
+nur die Grenzlinien. Zoomen lässt sich bis auf Straßenebene.
+
+Das geht auf, weil die eingebauten Umrisse mercator-projiziert sind – dasselbe
+Koordinatensystem, das Kartenkacheln benutzen. Die Kacheln passen deshalb ohne
+Umrechnung darüber, und weil sie in derselben verschobenen Ebene liegen wie
+Marker und Umrisse, muss beim Zoomen nichts nachgeführt werden.
+
+Die Kacheln kommen von OpenStreetMap; die Adresse steht in `app.js` als
+`KACHEL_QUELLE` und lässt sich gegen einen anderen Anbieter tauschen. Dazu drei
+Dinge:
+
+* Die [Nutzungsbedingungen von OpenStreetMap](https://operations.osmfoundation.org/policies/tiles/)
+  erlauben nur leichte Nutzung. Für eine Karte, die dauerhaft öffentlich läuft,
+  gehört dort ein eigener Kachel-Anbieter hinein (oder ein selbst betriebener
+  Server).
+* Der Hinweis auf die Kartendaten unten links ist Bedingung der Lizenz und darf
+  nicht entfernt werden.
+* Kommt keine Kachel an – kein Netz, oder eine Umgebung, die fremde Bilder
+  blockiert –, bleibt es bei der weißen Karte. Zoomen funktioniert trotzdem,
+  und ein Hinweis erklärt, warum keine Straßen erscheinen.
+
 ## Bedienung
 
 * **Zoomen** – Mausrad, die Knöpfe unten rechts, Doppelklick oder zwei Finger.
+  Von der Gesamtansicht bis auf Straßenebene.
 * **Verschieben** – ziehen.
 * **Standort öffnen** – auf einen Marker klicken, oder über die **Lupe** oben
   links: bei leerem Suchfeld stehen dort alle Betriebssitze und Projekte,

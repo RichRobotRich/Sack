@@ -39,10 +39,21 @@
 
     <svg id="karte" role="img" aria-label="Karte von Deutschland mit unseren Projekten">
       <g id="ebene">
+          <g id="ebeneKacheln"></g>
         <g id="ebeneLaender"></g>
-        <g id="ebeneMarker"></g>
+          <g id="ebeneMarker"></g>
       </g>
     </svg>
+
+    <div class="kartenhinweis" id="kartenhinweis" hidden>
+      Straßenkarte hier nicht verfügbar &ndash; sie braucht eine Verbindung zum
+      Kartendienst.
+    </div>
+
+    <div class="kartenherkunft" id="kartenherkunft" hidden>
+      Kartendaten &copy; <a href="https://www.openstreetmap.org/copyright"
+      target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende
+    </div>
 
     <div class="legende">
       <span><i></i> Projekte</span>

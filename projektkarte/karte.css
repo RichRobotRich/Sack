@@ -5,8 +5,8 @@
   --blau-hell: #3b82f6;
   --blau-dunkel: #172554;
   --sitz: #0f172a;
-  --fern: #0d9488;
-  --fern-hell: #14b8a6;
+  --fern: #dc2626;
+  --fern-hell: #ef4444;
   --text: #0f172a;
   --text-leise: #64748b;
   --linie: #e2e8f0;
@@ -259,6 +259,60 @@ button, input, select, textarea {
   stroke-width: 1.2;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
+  transition: fill .25s ease;
+}
+
+/* Sobald die Straßenkarte liegt, bleiben von den Ländern nur die Grenzen. */
+#karte.mit-strassen .land {
+  fill: transparent;
+  stroke: rgba(15, 23, 42, .35);
+  stroke-width: 1.6;
+}
+
+#ebeneKacheln {
+  opacity: 0;
+  transition: opacity .3s ease;
+  pointer-events: none;
+}
+
+#karte.mit-strassen #ebeneKacheln { opacity: 1; }
+
+.kachel { image-rendering: -webkit-optimize-contrast; }
+
+.kartenherkunft {
+  position: absolute;
+  left: 14px;
+  bottom: 58px;
+  font-size: 11px;
+  color: var(--text-leise);
+  background: rgba(255, 255, 255, .9);
+  padding: 3px 8px;
+  border-radius: 6px;
+  z-index: 5;
+}
+
+.kartenherkunft a { color: inherit; }
+
+.kartenhinweis {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  max-width: 240px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-leise);
+  background: rgba(255, 255, 255, .94);
+  border: 1px solid var(--linie);
+  padding: 8px 11px;
+  border-radius: 9px;
+  box-shadow: var(--schatten);
+  z-index: 5;
+}
+
+.kartenfeld.tafel-offen .kartenhinweis { right: 474px; }
+
+@media (max-width: 900px) {
+  .kartenfeld.tafel-offen .kartenhinweis { right: 14px; }
 }
 
 .marker { cursor: pointer; }
@@ -278,7 +332,10 @@ button, input, select, textarea {
   stroke-width: 1.5;
   stroke-linecap: round;
 }
+/* Der gewählte Marker wird dunkler, behält aber die Farbe seiner Art. */
 .marker.gewaehlt .stift { fill: var(--blau-dunkel); }
+.marker.sitz.gewaehlt .stift { fill: #000; }
+.marker.fernaufschaltung.gewaehlt .stift { fill: #7f1d1d; }
 
 .marker .name {
   font-size: 11px;
