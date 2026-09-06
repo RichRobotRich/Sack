@@ -1,0 +1,782 @@
+/* Projektkarte - Layout und Erscheinungsbild */
+
+:root {
+  --blau: #1d4ed8;
+  --blau-hell: #3b82f6;
+  --blau-dunkel: #172554;
+  --sitz: #0f172a;
+  --text: #0f172a;
+  --text-leise: #64748b;
+  --linie: #e2e8f0;
+  --flaeche: #f1f5f9;
+  --karte-land: #ffffff;
+  --karte-grenze: #b6c4d6;
+  --karte-hintergrund: #eef2f7;
+  --schatten: 0 1px 2px rgba(15, 23, 42, .06), 0 8px 24px rgba(15, 23, 42, .08);
+  --radius: 12px;
+  --kopf: 60px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text);
+  background: var(--flaeche);
+  overflow: hidden;
+}
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* ---------------------------------------------------------------- Grundgeruest */
+
+.kopfzeile {
+  height: var(--kopf);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  background: #fff;
+  border-bottom: 1px solid var(--linie);
+  position: relative;
+  z-index: 30;
+}
+
+.marke {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.marke img { height: 30px; width: auto; display: none; }
+.marke img.da { display: block; }
+
+.marke .titel {
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kopf-luecke { flex: 1; }
+
+.inhalt {
+  display: flex;
+  height: calc(100% - var(--kopf));
+  position: relative;
+}
+
+/* ---------------------------------------------------------------- Seitenleiste */
+
+.seitenleiste {
+  width: 320px;
+  flex: 0 0 320px;
+  background: #fff;
+  border-right: 1px solid var(--linie);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.suchfeld {
+  padding: 12px;
+  border-bottom: 1px solid var(--linie);
+}
+
+.suchfeld input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--linie);
+  border-radius: 9px;
+  background: var(--flaeche);
+  outline: none;
+}
+
+.suchfeld input:focus {
+  border-color: var(--blau-hell);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, .15);
+}
+
+.liste {
+  overflow-y: auto;
+  padding: 8px 8px 24px;
+  flex: 1;
+  min-height: 0;
+}
+
+.listen-titel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-leise);
+  padding: 14px 8px 6px;
+}
+
+.eintrag {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 9px 10px;
+  border: 0;
+  background: transparent;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.eintrag:hover { background: var(--flaeche); }
+.eintrag.aktiv { background: rgba(29, 78, 216, .09); }
+
+.eintrag .punkt {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--blau);
+  flex: 0 0 auto;
+}
+
+.eintrag.sitz .punkt {
+  border-radius: 3px;
+  background: var(--sitz);
+}
+
+.eintrag .beschriftung {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.eintrag .name {
+  font-size: 14px;
+  font-weight: 550;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.eintrag .ort {
+  font-size: 12px;
+  color: var(--text-leise);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leer {
+  padding: 24px 12px;
+  color: var(--text-leise);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ---------------------------------------------------------------- Karte */
+
+.kartenfeld {
+  flex: 1;
+  position: relative;
+  background: var(--karte-hintergrund);
+  overflow: hidden;
+  min-width: 0;
+}
+
+#karte {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  cursor: grab;
+}
+
+#karte.zieht { cursor: grabbing; }
+#karte.setzt { cursor: crosshair; }
+
+.land {
+  fill: var(--karte-land);
+  stroke: var(--karte-grenze);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.marker { cursor: pointer; }
+.marker .treffer { fill: transparent; }
+.marker .schatten { fill: rgba(15, 23, 42, .18); }
+.marker .stift { fill: var(--blau); }
+.marker .kern { fill: #fff; }
+.marker.sitz .stift { fill: var(--sitz); }
+.marker:hover .stift { fill: var(--blau-hell); }
+.marker.sitz:hover .stift { fill: #334155; }
+.marker.gewaehlt .stift { fill: var(--blau-dunkel); }
+
+.marker .name {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--text);
+  paint-order: stroke;
+  stroke: rgba(255, 255, 255, .92);
+  stroke-width: 3.5px;
+  stroke-linejoin: round;
+  text-anchor: middle;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .12s;
+}
+
+.marker.zeigt-namen .name,
+.marker:hover .name { opacity: 1; }
+
+.kartensteuerung {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 5;
+}
+
+.kartensteuerung button {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--linie);
+  background: #fff;
+  box-shadow: var(--schatten);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.kartensteuerung button:hover { background: var(--flaeche); }
+
+/* Bei geöffneter Detailtafel wandert die Steuerung neben die Tafel. */
+.kartenfeld.tafel-offen .kartensteuerung { right: 474px; }
+
+.legende {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  background: rgba(255, 255, 255, .94);
+  border: 1px solid var(--linie);
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 12px;
+  box-shadow: var(--schatten);
+  display: flex;
+  gap: 16px;
+  z-index: 5;
+}
+
+.legende span { display: flex; align-items: center; gap: 7px; }
+.legende i { width: 11px; height: 11px; border-radius: 50%; background: var(--blau); }
+.legende i.eckig { border-radius: 3px; background: var(--sitz); }
+
+.hinweisleiste {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--blau-dunkel);
+  color: #fff;
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  box-shadow: var(--schatten);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ---------------------------------------------------------------- Schaltflaechen */
+
+.knopf {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 9px;
+  border: 1px solid var(--linie);
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 550;
+  white-space: nowrap;
+}
+
+.knopf:hover { background: var(--flaeche); }
+
+.knopf.haupt {
+  background: var(--blau);
+  border-color: var(--blau);
+  color: #fff;
+}
+.knopf.haupt:hover { background: #1e40af; }
+
+.knopf.leise {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-leise);
+}
+.knopf.leise:hover { background: var(--flaeche); color: var(--text); }
+
+.knopf.gefahr { color: #b91c1c; border-color: #fecaca; background: #fef2f2; }
+.knopf.gefahr:hover { background: #fee2e2; }
+
+.knopf.klein { padding: 5px 10px; font-size: 13px; }
+.knopf:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ---------------------------------------------------------------- Detailtafel */
+
+.tafel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 460px;
+  max-width: 100%;
+  background: #fff;
+  border-left: 1px solid var(--linie);
+  box-shadow: -12px 0 32px rgba(15, 23, 42, .08);
+  transform: translateX(102%);
+  transition: transform .28s cubic-bezier(.4, 0, .2, 1);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+}
+
+.tafel.offen { transform: none; }
+
+.tafel-kopf {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+}
+
+.tafel-schliessen {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 0;
+  background: rgba(255, 255, 255, .9);
+  box-shadow: var(--schatten);
+  cursor: pointer;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.tafel-inhalt {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.titelbild {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: var(--flaeche);
+  display: block;
+}
+
+.tafel-text { padding: 20px; }
+
+.tafel-marke {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--blau);
+  margin-bottom: 6px;
+}
+
+.tafel-marke.sitz { color: var(--sitz); }
+
+.tafel h2 {
+  margin: 0 0 4px;
+  font-size: 21px;
+  letter-spacing: -.01em;
+}
+
+.tafel .unterzeile {
+  color: var(--text-leise);
+  font-size: 14px;
+  margin-bottom: 18px;
+}
+
+.eckdaten {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--linie);
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.eckdaten div { background: #fff; padding: 11px 13px; }
+.eckdaten dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--text-leise);
+  font-weight: 600;
+}
+.eckdaten dd { margin: 3px 0 0; font-size: 15px; font-weight: 550; }
+
+.beschreibung { line-height: 1.62; font-size: 14.5px; }
+.beschreibung p { margin: 0 0 12px; }
+
+.abschnitt-titel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--text-leise);
+  margin: 24px 0 10px;
+}
+
+.galerie {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.galerie figure { margin: 0; }
+
+.galerie img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 9px;
+  background: var(--flaeche);
+  cursor: zoom-in;
+  display: block;
+}
+
+.galerie figcaption {
+  font-size: 12px;
+  color: var(--text-leise);
+  margin-top: 4px;
+}
+
+/* ---------------------------------------------------------------- Lichtkasten */
+
+.lichtkasten {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, .88);
+  z-index: 90;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.lichtkasten.offen { display: flex; }
+.lichtkasten img { max-width: 92vw; max-height: 84vh; border-radius: 8px; }
+
+.lichtkasten .bildtext {
+  position: absolute;
+  bottom: 22px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #fff;
+  font-size: 14px;
+  padding: 0 60px;
+}
+
+.lichtkasten button {
+  position: absolute;
+  border: 0;
+  background: rgba(255, 255, 255, .16);
+  color: #fff;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.lichtkasten button:hover { background: rgba(255, 255, 255, .28); }
+.lichtkasten .zu { top: 18px; right: 18px; }
+.lichtkasten .vor { right: 18px; top: 50%; transform: translateY(-50%); }
+.lichtkasten .zurueck { left: 18px; top: 50%; transform: translateY(-50%); }
+
+/* ---------------------------------------------------------------- Dialoge */
+
+.schleier {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, .45);
+  z-index: 60;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.schleier.offen { display: flex; }
+
+.dialog {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, .25);
+  width: 100%;
+  max-width: 440px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dialog.breit { max-width: 900px; }
+
+.dialog-kopf {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--linie);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dialog-kopf h3 { margin: 0; font-size: 17px; flex: 1; }
+
+.dialog-koerper {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.dialog-fuss {
+  padding: 14px 20px;
+  border-top: 1px solid var(--linie);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  background: #fcfdfe;
+}
+
+/* ---------------------------------------------------------------- Formulare */
+
+.feld { margin-bottom: 14px; }
+
+.feld > label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #334155;
+}
+
+.feld input[type="text"],
+.feld input[type="password"],
+.feld input[type="number"],
+.feld textarea,
+.feld select {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--linie);
+  border-radius: 9px;
+  background: #fff;
+  outline: none;
+}
+
+.feld textarea { min-height: 130px; resize: vertical; line-height: 1.55; }
+
+.feld input:focus, .feld textarea:focus, .feld select:focus {
+  border-color: var(--blau-hell);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, .15);
+}
+
+.feld .hilfe { font-size: 12px; color: var(--text-leise); margin-top: 5px; }
+
+.reihe { display: flex; gap: 12px; }
+.reihe > * { flex: 1; min-width: 0; }
+
+.fehler {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 9px 12px;
+  border-radius: 9px;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.erfolg {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+  padding: 9px 12px;
+  border-radius: 9px;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+/* Eckdaten-Reihen im Editor */
+
+.daten-reihe {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.daten-reihe input { flex: 1; min-width: 0; }
+.daten-reihe .griff { color: var(--text-leise); cursor: default; font-size: 13px; }
+
+.bild-reihe {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid var(--linie);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.bild-reihe img {
+  width: 72px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--flaeche);
+  flex: 0 0 auto;
+}
+
+.bild-reihe input { flex: 1; min-width: 0; }
+
+.vorschau-titelbild {
+  width: 100%;
+  max-width: 340px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 10px;
+  background: var(--flaeche);
+  border: 1px solid var(--linie);
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* ---------------------------------------------------------------- Verwaltung */
+
+.reiter {
+  display: flex;
+  gap: 4px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--linie);
+  background: #fff;
+}
+
+.reiter button {
+  border: 0;
+  background: transparent;
+  padding: 12px 12px 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 550;
+  color: var(--text-leise);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.reiter button.aktiv { color: var(--blau); border-bottom-color: var(--blau); }
+
+.verwaltung-liste { display: flex; flex-direction: column; gap: 8px; }
+
+.verwaltung-zeile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--linie);
+  border-radius: 10px;
+}
+
+.verwaltung-zeile img {
+  width: 56px;
+  height: 42px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--flaeche);
+  flex: 0 0 auto;
+}
+
+.verwaltung-zeile .beschriftung { flex: 1; min-width: 0; }
+.verwaltung-zeile .name { font-weight: 600; font-size: 14px; }
+.verwaltung-zeile .ort { font-size: 12.5px; color: var(--text-leise); }
+
+.speicher-balken {
+  height: 7px;
+  border-radius: 4px;
+  background: var(--linie);
+  overflow: hidden;
+  margin: 8px 0 6px;
+}
+
+.speicher-balken i { display: block; height: 100%; background: var(--blau); }
+
+.meldung {
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translate(-50%, 20px);
+  background: var(--blau-dunkel);
+  color: #fff;
+  padding: 11px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  box-shadow: var(--schatten);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s, transform .2s;
+  z-index: 100;
+}
+
+.meldung.sichtbar { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------------------------------------------------------------- Schmale Fenster */
+
+.nur-schmal { display: none; }
+
+@media (max-width: 900px) {
+  .nur-schmal { display: inline-flex; }
+  .nur-breit { display: none; }
+
+  .seitenleiste {
+    position: absolute;
+    inset: 0 auto 0 0;
+    z-index: 25;
+    width: 300px;
+    max-width: 86%;
+    transform: translateX(-102%);
+    transition: transform .25s;
+    box-shadow: var(--schatten);
+  }
+
+  .seitenleiste.offen { transform: none; }
+  .tafel { width: 100%; }
+  .kartenfeld.tafel-offen .kartensteuerung { right: 14px; }
+  .legende { font-size: 11px; padding: 7px 10px; gap: 12px; }
+  .marke .titel { font-size: 15px; }
+}

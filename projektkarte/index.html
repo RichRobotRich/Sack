@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Projektkarte</title>
+<link rel="icon" href="favicon-32.png">
+<link rel="stylesheet" href="karte.css">
+</head>
+<body>
+
+<header class="kopfzeile">
+  <button class="knopf leise nur-schmal" id="knopfListe" aria-label="Projektliste">&#9776;</button>
+  <div class="marke">
+    <img id="logo" src="logo.png" alt="" onload="this.classList.add('da')" onerror="this.remove()">
+    <div class="titel" id="seitentitel">Unsere Projekte in Deutschland</div>
+  </div>
+  <div class="kopf-luecke"></div>
+  <button class="knopf" id="knopfMitarbeiter">Mitarbeiterbereich</button>
+</header>
+
+<div class="inhalt">
+
+  <aside class="seitenleiste" id="seitenleiste">
+    <div class="suchfeld">
+      <input type="search" id="suche" placeholder="Projekt oder Ort suchen&hellip;" autocomplete="off">
+    </div>
+    <div class="liste" id="liste"></div>
+  </aside>
+
+  <main class="kartenfeld" id="kartenfeld">
+    <svg id="karte" role="img" aria-label="Karte von Deutschland mit unseren Projekten">
+      <g id="ebene">
+        <g id="ebeneLaender"></g>
+        <g id="ebeneMarker"></g>
+      </g>
+    </svg>
+
+    <div class="legende">
+      <span><i></i> Projekte</span>
+      <span><i class="eckig"></i> Betriebssitze</span>
+    </div>
+
+    <div class="kartensteuerung">
+      <button id="knopfPlus" title="Vergrößern" aria-label="Vergrößern">+</button>
+      <button id="knopfMinus" title="Verkleinern" aria-label="Verkleinern">&minus;</button>
+      <button id="knopfHeim" title="Ganz Deutschland zeigen" aria-label="Ganz Deutschland zeigen">&#8635;</button>
+    </div>
+  </main>
+
+  <section class="tafel" id="tafel" aria-hidden="true">
+    <div class="tafel-kopf">
+      <button class="tafel-schliessen" id="tafelSchliessen" aria-label="Schließen">&times;</button>
+    </div>
+    <div class="tafel-inhalt" id="tafelInhalt"></div>
+  </section>
+
+</div>
+
+<!-- Bildansicht -->
+<div class="lichtkasten" id="lichtkasten" role="dialog" aria-label="Bildansicht">
+  <button class="zu" id="lkZu" aria-label="Schließen">&times;</button>
+  <button class="zurueck" id="lkZurueck" aria-label="Vorheriges Bild">&#8249;</button>
+  <img id="lkBild" alt="">
+  <button class="vor" id="lkVor" aria-label="Nächstes Bild">&#8250;</button>
+  <div class="bildtext" id="lkText"></div>
+</div>
+
+<!-- Dialoge -->
+<div class="schleier" id="schleier">
+  <div class="dialog" id="dialog" role="dialog" aria-modal="true">
+    <div class="dialog-kopf">
+      <h3 id="dialogTitel"></h3>
+      <button class="knopf leise klein" id="dialogSchliessen" aria-label="Schließen">&times;</button>
+    </div>
+    <div class="dialog-koerper" id="dialogKoerper"></div>
+    <div class="dialog-fuss" id="dialogFuss"></div>
+  </div>
+</div>
+
+<div class="meldung" id="meldung"></div>
+
+<script src="geo-deutschland.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
