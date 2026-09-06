@@ -80,6 +80,17 @@ Betriebssitze in Supabase abzulegen (Tabellen plus Storage für die Bilder) und
 Der Aufbau der Daten ist bereits darauf ausgelegt – jeder Eintrag hat eine
 eigene `id`, die Eckdaten sind eine Liste aus Bezeichnung und Wert.
 
+## Eine einzige Datei zum Weitergeben
+
+`projektkarte-komplett.html` ist die ganze Karte in einer Datei – Stil, Skript,
+Kartendaten und Logo stecken darin. Sie lässt sich per Doppelklick öffnen, auf
+einen USB-Stick legen oder verschicken, ohne dass etwas fehlt. Neu gebaut wird
+sie nach Änderungen mit
+
+```bash
+node projektkarte/build-einzeldatei.mjs
+```
+
 ## Auf einen Server stellen
 
 Den Ordner `projektkarte/` unverändert auf einen beliebigen Webspace kopieren,
