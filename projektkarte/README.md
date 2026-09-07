@@ -71,7 +71,13 @@ Dinge:
   links: bei leerem Suchfeld stehen dort alle Betriebssitze und Projekte,
   Tippen filtert sie. Mit den Pfeiltasten durch die Treffer, mit Enter öffnen,
   mit Escape oder einem Klick auf die Karte wieder schließen.
-* **Zurück zur Gesamtansicht** – der Knopf mit dem Pfeil unten rechts.
+* **Zurück zur Gesamtansicht** – der Knopf mit dem Pfeil unten rechts. Wird die
+  Karte 20 Sekunden lang nicht bedient, stellt sie sich von selbst wieder auf
+  ganz Deutschland und schließt Suche und Detailtafel – gedacht für einen
+  Bildschirm, an dem Leute vorbeikommen. Die Zeit steht in den Einstellungen,
+  `0` schaltet die Rückkehr ab. Wer gerade im Mitarbeiterbereich etwas
+  einträgt, eine Position auf der Karte setzt oder ein Bild groß betrachtet,
+  wird nicht unterbrochen.
 
 ## Mitarbeiterbereich
 
@@ -90,6 +96,8 @@ Dort lassen sich
   startet, steht in der Tabelle oben – nur ein Vorschlag und vollständig
   änderbar,
 * die Überschrift der Seite ändern,
+* einstellen, nach wie vielen Sekunden ohne Bedienung die Karte zur
+  Gesamtansicht zurückkehrt,
 * das Kennwort ändern,
 * alle Daten als JSON sichern und wieder einlesen.
 

@@ -12,6 +12,7 @@
   var SPEICHER = 'projektkarte.v1';
   var SITZUNG = 'projektkarte.frei';
   var STANDARD_PASSWORT = 'leniger';
+  var RUHE_STANDARD = 20;   // Sekunden ohne Bedienung bis zurück zur Gesamtansicht
   var G = window.GEO_DE;
 
   /* ------------------------------------------------------------ Werkzeug */
@@ -177,7 +178,8 @@
       version: 1,
       einstellungen: {
         seitentitel: 'Unsere Projekte in Deutschland',
-        passwortHash: null
+        passwortHash: null,
+        ruheSekunden: RUHE_STANDARD
       },
       sitze: [
         {
@@ -271,7 +273,9 @@
       version: 1,
       einstellungen: {
         seitentitel: (d.einstellungen && d.einstellungen.seitentitel) || 'Unsere Projekte in Deutschland',
-        passwortHash: (d.einstellungen && d.einstellungen.passwortHash) || null
+        passwortHash: (d.einstellungen && d.einstellungen.passwortHash) || null,
+        ruheSekunden: Math.max(0, Math.min(3600,
+          Math.round(zahl(d.einstellungen && d.einstellungen.ruheSekunden, RUHE_STANDARD))))
       },
       sitze: (Array.isArray(d.sitze) ? d.sitze : []).map(eintragAufraeumen),
       projekte: (Array.isArray(d.projekte) ? d.projekte : []).map(eintragAufraeumen),
@@ -667,19 +671,16 @@
   }
 
   var animation = null;
-  function flieg(lat, lon, ziel_k) {
-    var p = projiziere(lat, lon);
+
+  /** Weicher Übergang zu einer Ansicht. */
+  function animiereZu(zielX, zielY, zielK, dauer) {
     var startX = ansicht.x, startY = ansicht.y, startK = ansicht.k;
-    var zielK = Math.min(K_MAX, Math.max(K_MIN, ziel_k));
-    // Der Punkt soll in der Mitte des sichtbaren Kartenfelds landen.
-    var mitte = sichtbareMitte();
-    var zielX = mitte.x - p.x * zielK;
-    var zielY = mitte.y - p.y * zielK;
     var start = performance.now();
+    var lauf = dauer || 520;
     cancelAnimationFrame(animation);
 
     (function schritt(jetzt) {
-      var t = Math.min(1, (jetzt - start) / 520);
+      var t = Math.min(1, (jetzt - start) / lauf);
       var e = t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
       ansicht.k = startK + (zielK - startK) * e;
       ansicht.x = startX + (zielX - startX) * e;
@@ -688,6 +689,14 @@
       wendeAn();
       if (t < 1) animation = requestAnimationFrame(schritt);
     })(start);
+  }
+
+  function flieg(lat, lon, ziel_k) {
+    var p = projiziere(lat, lon);
+    var zielK = Math.min(K_MAX, Math.max(K_MIN, ziel_k));
+    // Der Punkt soll in der Mitte des sichtbaren Kartenfelds landen.
+    var mitte = sichtbareMitte();
+    animiereZu(mitte.x - p.x * zielK, mitte.y - p.y * zielK, zielK);
   }
 
   /**
@@ -711,6 +720,48 @@
     ansicht = { x: 0, y: 0, k: 1 };
     wendeAn();
   }
+
+  /* ---- Zurück zur Gesamtansicht, wenn niemand die Karte benutzt
+   *
+   * Gedacht für einen Bildschirm, an dem Leute vorbeikommen, etwas anschauen
+   * und weitergehen: nach einer Weile ohne Bedienung stellt sich die Karte
+   * wieder auf ganz Deutschland. Wer gerade im Mitarbeiterbereich etwas
+   * einträgt, wird dabei nicht unterbrochen.
+   */
+  var ruheUhr = null;
+
+  function istUebersicht() {
+    return Math.abs(ansicht.k - 1) < 0.01 &&
+      Math.abs(ansicht.x) < 0.5 && Math.abs(ansicht.y) < 0.5;
+  }
+
+  function ruheNeuStarten() {
+    clearTimeout(ruheUhr);
+    var sekunden = daten.einstellungen.ruheSekunden;
+    if (!sekunden) return;
+    ruheUhr = setTimeout(ruheAbgelaufen, sekunden * 1000);
+  }
+
+  function ruheAbgelaufen() {
+    // Ein offener Dialog, ein groß betrachtetes Bild oder das Setzen einer
+    // Position heißt: da schaut jemand hin. Dann wird nichts zurückgestellt,
+    // sondern später noch einmal geschaut.
+    var beschaeftigt = $('#schleier').classList.contains('offen') ||
+      $('#lichtkasten').classList.contains('offen') || !!setzeModus;
+    var schonRuhig = istUebersicht() && !sucheOffen &&
+      !$('#tafel').classList.contains('offen');
+
+    if (!beschaeftigt && !schonRuhig) {
+      schliesseSuche();
+      schliesseTafel();
+      animiereZu(0, 0, 1, 900);
+    }
+    ruheNeuStarten();
+  }
+
+  ['pointerdown', 'wheel', 'keydown', 'touchstart'].forEach(function (art) {
+    document.addEventListener(art, ruheNeuStarten, { passive: true });
+  });
 
   /* ---- Ziehen, Rad und Zwei-Finger-Zoom */
 
@@ -1577,6 +1628,31 @@
       }
     }, 'Überschrift speichern'));
 
+    /* Rückkehr zur Gesamtansicht */
+    var ruheFeld = h('input', {
+      type: 'number', min: '0', max: '3600', step: '5',
+      value: daten.einstellungen.ruheSekunden
+    });
+    behaelter.appendChild(h('div', {
+      class: 'abschnitt-titel', text: 'Automatisch zurück zur Gesamtansicht'
+    }));
+    behaelter.appendChild(feld('Nach wie vielen Sekunden ohne Bedienung?', ruheFeld,
+      'Die Karte schließt dann Suche und Detailtafel und stellt sich wieder auf ganz ' +
+      'Deutschland – gedacht für einen Bildschirm, an dem Leute vorbeikommen. ' +
+      'Wer gerade im Mitarbeiterbereich etwas einträgt, wird nicht unterbrochen. ' +
+      '0 schaltet die Rückkehr ab.'));
+    behaelter.appendChild(h('button', {
+      class: 'knopf klein', onclick: function () {
+        var sekunden = Math.max(0, Math.min(3600, Math.round(zahl(ruheFeld.value, RUHE_STANDARD))));
+        daten.einstellungen.ruheSekunden = sekunden;
+        ruheFeld.value = sekunden;
+        if (speichern()) {
+          ruheNeuStarten();
+          melde(sekunden ? 'Rückkehr nach ' + sekunden + ' Sekunden' : 'Rückkehr abgeschaltet');
+        }
+      }
+    }, 'Übernehmen'));
+
     /* Kennwort */
     var altFeld = h('input', { type: 'password', autocomplete: 'current-password' });
     var neuFeld = h('input', { type: 'password', autocomplete: 'new-password' });
@@ -1744,6 +1820,7 @@
   zeichneMarker();
   zeichneListe();
   wendeAn();
+  ruheNeuStarten();
 
   window.addEventListener('resize', setzeMarkerGroesse);
 })();
