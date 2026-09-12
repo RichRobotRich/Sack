@@ -30,6 +30,9 @@ konfig-beispiel.php Vorlage, um die Datenbank woanders abzulegen
 router.php          nur für den eingebauten PHP-Server zum Ausprobieren
 ```
 
+Für die Einrichtung durch die IT liegt `INSTALLATION.html` bei – dasselbe
+kurz und zum Ausdrucken, einfach im Browser öffnen.
+
 ## Einrichten
 
 **Voraussetzungen:** PHP 8.0 oder neuer mit `pdo_sqlite` – das ist bei nahezu

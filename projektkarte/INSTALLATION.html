@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Projektkarte einrichten</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --tinte: #0f172a;
+    --tinte-leise: #55637a;
+    --papier: #ffffff;
+    --papier-tief: #f4f6fa;
+    --linie: #e2e8f0;
+    --linie-stark: #cbd5e1;
+    --blau: #1d4ed8;
+    --blau-tief: #eef2ff;
+    --rot: #b91c1c;
+    --rot-tief: #fef2f2;
+    --mass: 68ch;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --tinte: #e6eaf2;
+      --tinte-leise: #97a3b8;
+      --papier: #111722;
+      --papier-tief: #0b101a;
+      --linie: #222e42;
+      --linie-stark: #33415c;
+      --blau: #8ab0ff;
+      --blau-tief: #16203a;
+      --rot: #fca5a5;
+      --rot-tief: #2c1719;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --tinte: #e6eaf2;
+    --tinte-leise: #97a3b8;
+    --papier: #111722;
+    --papier-tief: #0b101a;
+    --linie: #222e42;
+    --linie-stark: #33415c;
+    --blau: #8ab0ff;
+    --blau-tief: #16203a;
+    --rot: #fca5a5;
+    --rot-tief: #2c1719;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    padding-block: 48px 96px;
+    padding-inline: 24px;
+    background: var(--papier);
+    color: var(--tinte);
+    font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+  }
+
+  .blatt {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 44px;
+  }
+
+  /* ---------------------------------------------------------- Kopf */
+
+  .kopf {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-bottom: 2px solid var(--tinte);
+    padding-bottom: 22px;
+  }
+
+  .kennzeichnung {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+    color: var(--tinte-leise);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(28px, 5vw, 38px);
+    line-height: 1.12;
+    letter-spacing: -.02em;
+    font-weight: 700;
+    text-wrap: balance;
+  }
+
+  .anriss {
+    margin: 0;
+    max-width: var(--mass);
+    color: var(--tinte-leise);
+    font-size: 17px;
+  }
+
+  /* ---------------------------------------------------------- Abschnitte */
+
+  section { display: flex; flex-direction: column; gap: 16px; }
+
+  h2 {
+    margin: 0;
+    font-size: 21px;
+    font-weight: 600;
+    letter-spacing: -.01em;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--linie);
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  p { margin: 0; max-width: var(--mass); }
+
+  a { color: var(--blau); }
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--blau);
+    outline-offset: 2px;
+  }
+
+  .leise { color: var(--tinte-leise); }
+
+  /* ---------------------------------------------------------- Voraussetzungen */
+
+  .liste-werte {
+    margin: 0;
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 2px 20px;
+    align-items: baseline;
+  }
+
+  .liste-werte dt {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 13px;
+    color: var(--tinte-leise);
+    padding-top: 3px;
+  }
+
+  .liste-werte dd { margin: 0; }
+
+  @media (max-width: 560px) {
+    .liste-werte { grid-template-columns: minmax(0, 1fr); gap: 0 0; }
+    .liste-werte dd { margin-bottom: 12px; }
+  }
+
+  /* ---------------------------------------------------------- Schritte */
+
+  .schritte {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+    counter-reset: schritt;
+  }
+
+  .schritte > li {
+    counter-increment: schritt;
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 4px 16px;
+    align-items: start;
+  }
+
+  .schritte > li::before {
+    content: counter(schritt);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--blau);
+    background: var(--blau-tief);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    margin-top: 1px;
+  }
+
+  .schritte .inhalt {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  @media (max-width: 560px) {
+    .schritte > li { grid-template-columns: minmax(0, 1fr); }
+    .schritte > li::before { margin-bottom: 4px; }
+  }
+
+  /* ---------------------------------------------------------- Befehle */
+
+  pre {
+    margin: 0;
+    background: var(--papier-tief);
+    border: 1px solid var(--linie);
+    border-left: 3px solid var(--linie-stark);
+    border-radius: 6px;
+    padding: 12px 14px;
+    overflow-x: auto;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 13.5px;
+    line-height: 1.6;
+    tab-size: 2;
+  }
+
+  code {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .9em;
+    background: var(--papier-tief);
+    border: 1px solid var(--linie);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+
+  pre code { background: none; border: 0; padding: 0; font-size: inherit; }
+
+  /* ---------------------------------------------------------- Pflichtpunkte */
+
+  .pflicht {
+    border-left: 3px solid var(--rot);
+    background: var(--rot-tief);
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-radius: 0 6px 6px 0;
+  }
+
+  .pflicht .marke {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+    color: var(--rot);
+    font-weight: 500;
+  }
+
+  .pflicht pre { background: var(--papier); }
+
+  .wahl {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .wahl > div { display: flex; flex-direction: column; gap: 7px; }
+
+  /* ---------------------------------------------------------- Tabellen */
+
+  .tabellenrahmen { overflow-x: auto; }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 14.5px;
+  }
+
+  th, td {
+    text-align: left;
+    padding: 9px 14px 9px 0;
+    border-bottom: 1px solid var(--linie);
+    vertical-align: top;
+  }
+
+  th {
+    font-size: 12px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--tinte-leise);
+    font-weight: 600;
+    border-bottom-color: var(--linie-stark);
+  }
+
+  td:first-child { white-space: nowrap; padding-right: 22px; }
+
+  .baum {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 13px;
+    line-height: 1.75;
+    white-space: pre;
+    overflow-x: auto;
+    color: var(--tinte-leise);
+  }
+
+  .baum b { color: var(--tinte); font-weight: 500; }
+
+  /* ---------------------------------------------------------- Fuß */
+
+  .fuss {
+    border-top: 1px solid var(--linie);
+    padding-top: 18px;
+    color: var(--tinte-leise);
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  /* ---------------------------------------------------------- Druck */
+
+  @media print {
+    :root {
+      --papier: #fff; --papier-tief: #f6f7f9; --tinte: #000;
+      --tinte-leise: #444; --linie: #ccc; --linie-stark: #999;
+      --blau: #14309c; --blau-tief: #eef; --rot: #a00; --rot-tief: #fff5f5;
+    }
+    body { padding: 0; font-size: 11pt; }
+    .blatt { gap: 26px; max-width: none; }
+    section, .schritte > li, .pflicht { break-inside: avoid; }
+    h2 { break-after: avoid; }
+    a { color: inherit; text-decoration: underline; }
+  }
+</style>
+</head>
+<body>
+
+<div class="blatt">
+
+  <header class="kopf">
+    <div class="kennzeichnung">Einrichtung &middot; für die IT</div>
+    <h1>Projektkarte einrichten</h1>
+    <p class="anriss">
+      Eine Deutschlandkarte mit unseren Projekten, Betriebssitzen und
+      Fernaufschaltungen. Statische Dateien plus ein paar PHP-Skripte, Daten in
+      einer SQLite-Datei. Kein Datenbankserver, kein Node, kein Composer, keine
+      Cronjobs &ndash; Dateien hochladen, zwei Dinge absichern, fertig.
+    </p>
+  </header>
+
+  <section>
+    <h2>Voraussetzungen</h2>
+    <dl class="liste-werte">
+      <dt>PHP</dt>
+      <dd>8.0 oder neuer, mit <code>pdo_sqlite</code>. Beides ist praktisch
+        überall vorhanden; prüfen mit <code>php -m | grep pdo_sqlite</code>.</dd>
+
+      <dt>Webserver</dt>
+      <dd>Apache oder nginx, beliebig. Die Anwendung braucht kein
+        <code>mod_rewrite</code> &ndash; mit ist die Schnittstelle nur
+        hübscher adressiert.</dd>
+
+      <dt>Speicher</dt>
+      <dd>Etwa 1&nbsp;MB für die Anwendung. Die Datenbank wächst mit den
+        Bildern; Erfahrungswert rund 150&nbsp;KB je Bild.</dd>
+
+      <dt>Ausgehend</dt>
+      <dd>Keine Verbindung vom Server nach außen nötig. Die
+        <strong>Arbeitsplätze</strong> brauchen allerdings Zugriff auf
+        <code>tile.openstreetmap.org</code>, sonst bleibt die Karte weiß statt
+        Straßen zu zeigen.</dd>
+
+      <dt>Nicht nötig</dt>
+      <dd>MySQL, Node, Composer, npm, Build-Schritte, Hintergrunddienste.</dd>
+    </dl>
+  </section>
+
+  <section>
+    <h2>Installation</h2>
+
+    <ol class="schritte">
+      <li>
+        <div class="inhalt">
+          <h3>Dateien hochladen</h3>
+          <p>Den Inhalt des Pakets dorthin legen, wo die gewünschte Adresse
+            hinzeigt &ndash; eigene Domain, Subdomain oder Unterordner. Die
+            Anwendung enthält keine feste Adresse, alle Verweise sind relativ;
+            sie läuft unverändert unter <code>projekte.beispiel.de</code>
+            ebenso wie unter <code>beispiel.de/projektkarte/</code>.</p>
+        </div>
+      </li>
+
+      <li>
+        <div class="inhalt">
+          <h3>Schreibrecht auf <code>daten/</code></h3>
+          <p>Dort legt die Anwendung beim ersten Aufruf
+            <code>projektkarte.sqlite</code> an. Der Ordner muss dem
+            Webserver-Benutzer gehören oder für ihn beschreibbar sein:</p>
+          <pre><code>chown -R www-data:www-data daten/
+chmod 750 daten/</code></pre>
+          <p class="leise">Benutzer je nach System <code>www-data</code>,
+            <code>apache</code>, <code>nginx</code> oder der des PHP-FPM-Pools.</p>
+        </div>
+      </li>
+
+      <li>
+        <div class="inhalt">
+          <h3>Karte aufrufen</h3>
+          <p>Die Startseite öffnen. Beim ersten Aufruf entsteht die Datenbank
+            mit ein paar Beispielstandorten, damit sofort etwas zu sehen ist.
+            Erscheint die Deutschlandkarte mit Markern, steht die Anwendung.</p>
+        </div>
+      </li>
+
+      <li>
+        <div class="inhalt">
+          <h3>Die beiden Pflichtpunkte abarbeiten</h3>
+          <p>HTTPS und die Sperre für <code>daten/</code> &ndash; siehe den
+            nächsten Abschnitt. Beides gehört erledigt, <em>bevor</em> die
+            Adresse weitergegeben wird.</p>
+        </div>
+      </li>
+
+      <li>
+        <div class="inhalt">
+          <h3>Anmelden und Kennwort ändern</h3>
+          <p><code>/admin</code> aufrufen, mit dem Standardkennwort
+            <code>leniger</code> anmelden und es unter <em>Einstellungen</em>
+            sofort ändern. Die Verwaltung weist oben darauf hin, solange das
+            Standardkennwort gilt.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Die beiden Pflichtpunkte</h2>
+
+    <div class="pflicht">
+      <div class="marke">Pflicht 1 &middot; HTTPS</div>
+      <p>Über die Anmeldung am Adminbereich geht ein Kennwort durch die
+        Leitung. Die Anwendung erkennt HTTPS von selbst &ndash; auch hinter
+        einem Reverse Proxy über <code>X-Forwarded-Proto</code> &ndash; und
+        markiert das Sitzungscookie dann als <code>secure</code>. Ohne HTTPS
+        geht das nicht, also bitte einrichten.</p>
+    </div>
+
+    <div class="pflicht">
+      <div class="marke">Pflicht 2 &middot; <code>daten/</code> sperren</div>
+      <p>In der SQLite-Datei stehen alle Inhalte <strong>und</strong> der Hash
+        des Admin-Kennworts. Wäre sie über den Browser abrufbar, könnte sie
+        jeder herunterladen. Einer der drei Wege genügt:</p>
+
+      <div class="wahl">
+        <div>
+          <h3>Apache</h3>
+          <p class="leise">Nichts zu tun &ndash; die mitgelieferte
+            <code>daten/.htaccess</code> erledigt es, sofern
+            <code>AllowOverride</code> das zulässt. Sonst dasselbe in die
+            vhost-Konfiguration.</p>
+        </div>
+        <div>
+          <h3>nginx</h3>
+          <p class="leise">Kennt keine <code>.htaccess</code>. In den
+            Server-Block gehört:</p>
+          <pre><code>location ^~ /daten/ {
+    deny all;
+    return 404;
+}</code></pre>
+        </div>
+        <div>
+          <h3>Am saubersten: ganz heraus aus dem Webverzeichnis</h3>
+          <p class="leise"><code>konfig-beispiel.php</code> nach
+            <code>konfig.php</code> kopieren und darin den Pfad setzen:</p>
+          <pre><code>define('DB_PFAD', '/var/lib/projektkarte/projektkarte.sqlite');</code></pre>
+          <p class="leise">Ordner anlegen, dem Webserver-Benutzer geben, fertig.</p>
+        </div>
+      </div>
+
+      <p><strong>Gegenprobe:</strong> Der Adminbereich prüft bei jeder
+        Anmeldung selbst, ob die Datei über das Netz antwortet, und zeigt
+        andernfalls eine rote Warnung. Erscheint keine Warnung, sitzt die
+        Sperre.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Was wo liegt</h2>
+    <div class="baum"><b>index.html</b>          die Karte, öffentlich, liest nur
+<b>karte.js</b> <b>karte.css</b>   Karte, Zoom, Suche, Detailtafel
+<b>geo-deutschland.js</b>  Umrisse der Bundesländer, eingebaut
+
+<b>api/</b>                REST-Schnittstelle
+  index.php          Verteiler, alle Endpunkte
+  datenbank.php      Verbindung, Schema, Beispieldaten
+  anmeldung.php      Sitzung, Kennwort, Sperre bei Fehlversuchen
+
+<b>admin/</b>              die Verwaltung, erreichbar unter /admin
+
+<b>daten/</b>              hier entsteht projektkarte.sqlite  ← sperren
+<b>konfig-beispiel.php</b> Vorlage, um die Datenbank zu verschieben
+<b>router.php</b>          nur zum Ausprobieren ohne Webserver
+<b>README.md</b>           ausführliche Fassung dieses Blattes</div>
+
+    <p>Der Adminbereich ist bewusst getrennt: Von der Karte führt kein Knopf
+      dorthin, sie enthält auch keinen Code zum Schreiben. Wer pflegen will,
+      ruft <code>/admin</code> auf.</p>
+  </section>
+
+  <section>
+    <h2>Wie es abgesichert ist</h2>
+    <div class="tabellenrahmen">
+      <table>
+        <thead>
+          <tr><th>Punkt</th><th>Umsetzung</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Kennwort</td>
+            <td>Als <code>password_hash()</code> in der Datenbank, geprüft auf
+              dem Server. Mindestens 8 Zeichen beim Ändern.</td>
+          </tr>
+          <tr>
+            <td>Sitzung</td>
+            <td>PHP-Session, Cookie <code>HttpOnly</code> und
+              <code>SameSite=Lax</code>, bei HTTPS zusätzlich
+              <code>secure</code>. Endet mit dem Schließen des Browsers.</td>
+          </tr>
+          <tr>
+            <td>Schreibzugriffe</td>
+            <td>Verlangen zusätzlich zum Cookie den Sitzungsschlüssel im Kopf
+              <code>X-Sitzungsschluessel</code>, sodass eine fremde Seite nicht
+              im Namen eines angemeldeten Browsers schreiben kann.</td>
+          </tr>
+          <tr>
+            <td>Durchprobieren</td>
+            <td>Fehlversuche werden je IP-Adresse gezählt; nach 10 innerhalb
+              einer Viertelstunde kommt <code>429</code>. Jeder Fehlversuch
+              wird zusätzlich um 0,4&nbsp;s verzögert.</td>
+          </tr>
+          <tr>
+            <td>Uploads</td>
+            <td>Nur JPEG, PNG, WebP, GIF; geprüft wird der tatsächliche Inhalt,
+              nicht die Endung. Höchstens 8&nbsp;MB je Bild.</td>
+          </tr>
+          <tr>
+            <td>Eingaben</td>
+            <td>Durchgehend vorbereitete SQL-Anweisungen; Ausgaben im Browser
+              werden als Text gesetzt, nicht als HTML.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Sicherung</h2>
+    <p>Alles &ndash; Standorte, Texte, Eckdaten und die Bilder &ndash; steht in
+      der einen SQLite-Datei. Die Bilder liegen als BLOB darin, es gibt also
+      kein zweites Verzeichnis, das mitgesichert werden müsste.</p>
+    <p>Im laufenden Betrieb gehört die Kopie sauber gezogen, sonst fehlt der
+      Inhalt des WAL:</p>
+    <pre><code>sqlite3 daten/projektkarte.sqlite ".backup /pfad/sicherung-$(date +%F).sqlite"</code></pre>
+    <p>Zurückspielen heißt: Datei zurückkopieren, die Dateien
+      <code>-wal</code> und <code>-shm</code> daneben löschen.</p>
+    <p class="leise">Alternativ gibt es in der Verwaltung unter
+      <em>Einstellungen</em> einen Export als JSON mit eingebetteten Bildern
+      &ndash; gedacht für den Umzug auf einen anderen Server, nicht als
+      Ersatz für die tägliche Sicherung.</p>
+  </section>
+
+  <section>
+    <h2>Aktualisieren</h2>
+    <p>Neue Dateien über die alten kopieren, <code>daten/</code> und eine
+      etwaige <code>konfig.php</code> dabei stehen lassen. Das Schema legt sich
+      beim ersten Aufruf selbst zurecht; ein Migrationslauf ist nicht nötig.</p>
+  </section>
+
+  <section>
+    <h2>Wenn etwas klemmt</h2>
+    <div class="tabellenrahmen">
+      <table>
+        <thead>
+          <tr><th>Erscheinung</th><th>Fast immer die Ursache</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Seite bleibt weiß</td>
+            <td>PHP-Fehler. Ins <code>error_log</code> schauen; meist fehlt
+              <code>pdo_sqlite</code> oder <code>daten/</code> ist nicht
+              beschreibbar.</td>
+          </tr>
+          <tr>
+            <td>&bdquo;Der Ordner daten/ ist nicht beschreibbar&ldquo;</td>
+            <td>Rechte, siehe Schritt&nbsp;2. Bei aktivem SELinux zusätzlich
+              <code>chcon -t httpd_sys_rw_content_t daten/</code>.</td>
+          </tr>
+          <tr>
+            <td>Karte lädt, aber ohne Standorte</td>
+            <td><code>/api/standorte</code> direkt aufrufen. Kommt dort kein
+              JSON, greift die Umschreibung nicht &ndash; die Schnittstelle
+              läuft dann auch als
+              <code>api/index.php?pfad=standorte</code>.</td>
+          </tr>
+          <tr>
+            <td>Keine Straßen beim Hineinzoomen</td>
+            <td>Die Arbeitsplätze erreichen
+              <code>tile.openstreetmap.org</code> nicht. Ein Hinweis auf der
+              Karte sagt das auch. Die Adresse der Kacheln steht in den
+              Einstellungen und lässt sich gegen einen eigenen Anbieter
+              tauschen.</td>
+          </tr>
+          <tr>
+            <td>Upload bricht ab</td>
+            <td><code>upload_max_filesize</code> und
+              <code>post_max_size</code> in der PHP-Konfiguration; 10&nbsp;MB
+              reichen bequem.</td>
+          </tr>
+          <tr>
+            <td>Rote Warnung im Adminbereich</td>
+            <td>Die Datenbank ist über das Netz abrufbar. Pflichtpunkt&nbsp;2
+              nachholen.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Die Schnittstelle, zur Kenntnis</h2>
+    <p>Alles unter <code>/api/</code>. Lesen ist offen, damit die Karte ohne
+      Anmeldung funktioniert; alles Schreibende verlangt eine Sitzung aus der
+      Verwaltung.</p>
+    <div class="tabellenrahmen">
+      <table>
+        <thead>
+          <tr><th>Verb</th><th>Pfad</th><th>Wirkung</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>GET</td><td><code>/api/standorte</code></td><td>alle Standorte mit Eckdaten und Bildliste</td></tr>
+          <tr><td>GET</td><td><code>/api/bilder/{id}</code></td><td>das Bild selbst, mit ETag</td></tr>
+          <tr><td>GET</td><td><code>/api/einstellungen</code></td><td>Titel, Ruhezeit, Kacheladresse</td></tr>
+          <tr><td>POST</td><td><code>/api/sitzung</code></td><td>anmelden</td></tr>
+          <tr><td colspan="3" class="leise">dazu POST / PUT / DELETE auf
+            <code>standorte</code> und <code>bilder</code>, PUT auf
+            <code>einstellungen</code> und <code>kennwort</code>, GET und POST
+            auf <code>sicherung</code> &ndash; alle nur angemeldet.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="leise">Ein Testaufruf ohne Anmeldung muss <code>401</code>
+      liefern:</p>
+    <pre><code>curl -i -X POST https://IHRE-ADRESSE/api/standorte \
+     -H 'Content-Type: application/json' \
+     -d '{"art":"projekt","name":"Test","lat":51,"lon":9}'</code></pre>
+  </section>
+
+  <footer class="fuss">
+    <div>Vollständige Fassung: <code>README.md</code> im Paket.</div>
+    <div>Kartendaten &copy; OpenStreetMap-Mitwirkende. Der Hinweis unten links
+      auf der Karte ist Bedingung der Lizenz und darf nicht entfernt werden.</div>
+  </footer>
+
+</div>
+
+</body>
+</html>
