@@ -1,0 +1,21 @@
+# Projektkarte - Apache
+
+DirectoryIndex index.html index.php
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Alles unter /api/ geht an den Front-Controller der Schnittstelle.
+  RewriteCond %{REQUEST_URI} !^.*/api/index\.php$
+  RewriteRule ^api/?$        api/index.php            [L]
+  RewriteCond %{REQUEST_URI} !^.*/api/index\.php$
+  RewriteRule ^api/(.*)$     api/index.php?pfad=$1    [QSA,L]
+</IfModule>
+
+# Der Adminbereich schickt nichts in den Zwischenspeicher.
+<FilesMatch "\.(php)$">
+  <IfModule mod_headers.c>
+    Header set Cache-Control "no-store"
+  </IfModule>
+</FilesMatch>

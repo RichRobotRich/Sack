@@ -1,0 +1,169 @@
+/* Verwaltung der Projektkarte - baut auf karte.css auf */
+
+body.admin {
+  overflow: auto;
+  background: var(--flaeche);
+}
+
+/* Muss sein: die Anzeigeart der Kästen unten würde das hidden-Attribut sonst
+   überstimmen, und die ausgeblendete Anmeldemaske belegte weiter Platz. */
+[hidden] { display: none !important; }
+
+/* ---------------------------------------------------------------- Anmeldung */
+
+.anmeldung {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.anmeldekasten {
+  background: #fff;
+  border: 1px solid var(--linie);
+  border-radius: 16px;
+  box-shadow: var(--schatten);
+  padding: 32px;
+  width: 100%;
+  max-width: 380px;
+}
+
+.anmeldelogo { height: 38px; margin-bottom: 18px; }
+
+.anmeldekasten h1 { font-size: 19px; margin: 0 0 6px; }
+.anmeldekasten .leise { color: var(--text-leise); font-size: 13.5px; margin: 0 0 20px; }
+
+.knopf.breit { width: 100%; justify-content: center; }
+
+/* ---------------------------------------------------------------- Werkbank */
+
+.werkbank .kopfzeile { position: sticky; top: 0; }
+.werkbank .reiter { position: sticky; top: var(--kopf); z-index: 20; }
+
+.werkflaeche {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+}
+
+.kopfreihe {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.kopfreihe h2 { margin: 0; font-size: 19px; flex: 1; }
+
+.warnung {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.warnung .knopf { margin-left: auto; }
+
+.tafelkasten {
+  background: #fff;
+  border: 1px solid var(--linie);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.tafelkasten > h3 {
+  margin: 0 0 14px;
+  font-size: 15px;
+}
+
+/* ---------------------------------------------------------------- Editor */
+
+.editor-spalten {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .editor-spalten { grid-template-columns: minmax(0, 1fr); }
+}
+
+.kartenwahl {
+  position: relative;
+  height: 420px;
+  border: 1px solid var(--linie);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--karte-hintergrund);
+}
+
+.kartenwahl svg { width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+
+.kartenwahl .hinweis {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  background: rgba(255, 255, 255, .94);
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text-leise);
+}
+
+.bildkachel {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid var(--linie);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  background: #fff;
+}
+
+.bildkachel img {
+  width: 84px;
+  height: 63px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--flaeche);
+  flex: 0 0 auto;
+}
+
+.bildkachel .spalte { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.bildkachel .knopfzeile { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.istTitelbild {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--blau);
+}
+
+.ablage {
+  border: 2px dashed var(--linie);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  color: var(--text-leise);
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.ablage:hover, .ablage.drueber { border-color: var(--blau-hell); background: rgba(59, 130, 246, .05); }
+
+.lade {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-leise);
+}

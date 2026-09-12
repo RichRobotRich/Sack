@@ -1,11 +1,123 @@
 # Projektkarte
 
 Eine Deutschlandkarte mit allen Projekten, den Betriebssitzen und den
-Fernaufschaltungen. Weiße Karte, farbige Standorte, zoom- und verschiebbar. Ein
-Klick auf einen Standort öffnet eine Seitentafel mit Titelbild, Eckdaten,
-Beschreibung und weiteren Bildern.
+Fernaufschaltungen. Weiße Karte, farbige Standorte, zoom- und verschiebbar; ab
+mittlerer Zoomstufe legt sich eine Straßenkarte darunter. Ein Klick auf einen
+Standort öffnet eine Seitentafel mit Titelbild, Eckdaten, Beschreibung und
+weiteren Bildern.
 
-Es gibt drei Arten von Standorten:
+Die Anwendung läuft auf einem gewöhnlichen Webserver mit PHP und SQLite. Kein
+Build, keine Abhängigkeiten, kein Paketmanager – die Dateien hochladen genügt.
+
+```
+index.html          die Karte (liest nur)
+karte.css           Gestaltung, von Karte und Verwaltung gemeinsam genutzt
+karte.js            Karte, Zoom, Suche, Detailtafel
+geo-deutschland.js  Umrisse der 16 Bundesländer als SVG-Pfade
+
+api/                die REST-Schnittstelle
+  index.php         Verteiler, alle Endpunkte
+  datenbank.php     Verbindung, Schema, Beispieldaten
+  anmeldung.php     Sitzung, Kennwort, Bremse gegen Durchprobieren
+
+admin/              die Verwaltung, erreichbar unter /admin
+  index.php         Grundgerüst und Anmeldemaske
+  admin.css
+  admin.js
+
+daten/              hier entsteht projektkarte.sqlite
+konfig-beispiel.php Vorlage, um die Datenbank woanders abzulegen
+router.php          nur für den eingebauten PHP-Server zum Ausprobieren
+```
+
+## Einrichten
+
+**Voraussetzungen:** PHP 8.0 oder neuer mit `pdo_sqlite` – das ist bei nahezu
+jedem Hoster dabei.
+
+1. Den gesamten Ordner auf den Webserver legen.
+2. Dafür sorgen, dass `daten/` für den Webserver beschreibbar ist
+   (`chmod 775 daten` und der Gruppe des Webservers zuordnen). Die
+   Datenbank legt sich beim ersten Aufruf selbst an, mitsamt Beispieldaten.
+3. Die Karte aufrufen – sie sollte erscheinen.
+4. `/admin` aufrufen, mit dem Standardkennwort **`leniger`** anmelden und es
+   sofort unter *Einstellungen* ändern. Die Verwaltung weist darauf hin,
+   solange es noch gilt.
+
+### Zum Ausprobieren ohne Webserver
+
+```bash
+php -S localhost:8000 -t . router.php
+```
+
+Dann `http://localhost:8000/` für die Karte und `http://localhost:8000/admin`
+für die Verwaltung. `router.php` übernimmt dabei, was sonst die `.htaccess`
+macht, und gehört nicht auf den richtigen Server.
+
+## Die Datenbank gehört geschützt
+
+In der Datenbank stehen alle Daten **und** der Hash des Kennworts. Sie darf
+nicht über den Browser abrufbar sein.
+
+* **Apache** erledigt das mit der mitgelieferten `daten/.htaccess` – sofern
+  `AllowOverride` es zulässt.
+* **nginx** kennt keine `.htaccess`. Dort gehört in den Server-Block:
+
+  ```nginx
+  location ^~ /daten/ { deny all; return 404; }
+  ```
+
+* **Am besten** liegt die Datei überhaupt nicht im Webverzeichnis:
+  `konfig-beispiel.php` nach `konfig.php` kopieren und darin `DB_PFAD` auf
+  einen Ordner oberhalb setzen.
+
+Die Verwaltung prüft beim Anmelden selbst, ob die Datei über das Netz
+erreichbar ist, und warnt deutlich, falls ja.
+
+## Die Schnittstelle
+
+Alles unter `/api/`. Lesen ist offen – die Karte braucht keine Anmeldung.
+Schreiben verlangt eine Sitzung aus der Verwaltung *und* den Sitzungsschlüssel
+im Kopf `X-Sitzungsschluessel`; beides zusammen, damit eine fremde Seite nicht
+im Namen eines angemeldeten Browsers schreiben kann.
+
+| Verb | Pfad | Wirkung |
+| --- | --- | --- |
+| GET | `/api/standorte` | alle Standorte mit Eckdaten und Bildliste |
+| GET | `/api/standorte/{id}` | ein Standort |
+| POST | `/api/standorte` | anlegen · Admin |
+| PUT | `/api/standorte/{id}` | ändern · Admin |
+| DELETE | `/api/standorte/{id}` | löschen · Admin |
+| GET | `/api/bilder/{id}` | das Bild selbst, mit ETag |
+| POST | `/api/bilder` | hochladen (multipart, Feld `bild`) · Admin |
+| PUT | `/api/bilder/{id}` | Unterschrift und Reihenfolge · Admin |
+| DELETE | `/api/bilder/{id}` | löschen · Admin |
+| GET | `/api/einstellungen` | Titel, Ruhezeit, Kacheladresse |
+| PUT | `/api/einstellungen` | ändern · Admin |
+| GET | `/api/sitzung` | Status und Sitzungsschlüssel |
+| POST | `/api/sitzung` | anmelden |
+| DELETE | `/api/sitzung` | abmelden |
+| PUT | `/api/kennwort` | Kennwort ändern · Admin |
+| GET | `/api/sicherung` | alles als JSON, Bilder einbegriffen · Admin |
+| POST | `/api/sicherung` | Sicherung einlesen · Admin |
+
+Ohne `mod_rewrite` läuft dieselbe Schnittstelle auch als
+`api/index.php?pfad=standorte/5` oder `api/index.php/standorte/5`.
+
+## Datenhaltung
+
+Eine einzige SQLite-Datei, Tabellen `standorte`, `eckdaten`, `bilder`,
+`einstellungen` und `anmeldeversuche`. **Auch die Bilder liegen darin**, als
+BLOB in `bilder.daten` – eine Sicherung der ganzen Anwendung ist damit das
+Kopieren einer Datei. Ausgeliefert werden sie über `/api/bilder/{id}` mit
+einem ETag, sodass der Browser jedes Bild nur einmal holt.
+
+Beim Hochladen verkleinert die Verwaltung jedes Bild im Browser auf 1600 Pixel
+und schickt es als JPEG; der Server prüft danach noch einmal Typ und Größe
+(höchstens 8 MB). Bilder, die beim Anlegen hochgeladen und dann nie gespeichert
+wurden, räumt die nächste Anmeldung weg.
+
+## Die drei Arten von Standorten
 
 | Art | Marker | Eckdaten, mit denen ein neuer Eintrag startet |
 | --- | --- | --- |
@@ -14,138 +126,53 @@ Es gibt drei Arten von Standorten:
 | Fernaufschaltung | roter Stift mit Funkzeichen | Anlagenart, Aufgeschaltet seit, Verbindung, Leitsystem, Störmeldung an, Wartungsvertrag |
 
 Fernaufschaltungen sind die Standorte, deren Anlagen wir aus der Ferne einsehen
-und steuern. Alle drei Arten funktionieren gleich – nur Farbe, Zeichen und die
-vorgeschlagenen Eckdaten unterscheiden sich, und auch die sind frei änderbar.
-
-Die Seite ist reines HTML, CSS und JavaScript – kein Build, kein Server, keine
-fremden Dienste. `projektkarte/index.html` lässt sich direkt im Browser öffnen.
-
-## Aufbau
-
-| Datei | Inhalt |
-| --- | --- |
-| `index.html` | Grundgerüst der Seite |
-| `karte.css` | Gestaltung |
-| `app.js` | Karte, Zoom, Detailtafel und Mitarbeiterbereich |
-| `geo-deutschland.js` | Umrisse der 16 Bundesländer als SVG-Pfade |
-
-Die Umrisse stammen aus den offenen Daten von
-[deutschlandGeoJSON](https://github.com/isellsoap/deutschlandGeoJSON)
-(Grundlage: Bundesamt für Kartographie und Geodäsie), mercator-projiziert und
-vereinfacht. `app.js` rechnet Längen- und Breitengrad mit denselben Parametern
-in Kartenkoordinaten um – neue Standorte lassen sich deshalb einfach über ihre
-Koordinaten oder per Klick auf die Karte setzen.
+und steuern. Die vorgeschlagenen Eckdaten sind nur ein Anfang: Bezeichnung und
+Wert sind Freitext, Zeilen lassen sich ergänzen, sortieren und entfernen.
 
 ## Straßen ab einer gewissen Zoomstufe
 
 Bis etwa zur Regionalebene bleibt es bei der weißen Karte aus den eingebauten
-Umrissen. Wird weiter hineingezoomt (Kachelstufe 9 und tiefer), legt sich
-darüber eine Straßenkarte aus Kartenkacheln, und von den Bundesländern bleiben
-nur die Grenzlinien. Zoomen lässt sich bis auf Straßenebene.
+Umrissen. Wird weiter hineingezoomt, legt sich darüber eine Straßenkarte aus
+Kartenkacheln, und von den Bundesländern bleiben nur die Grenzlinien. Zoomen
+lässt sich bis auf Straßenebene.
 
 Das geht auf, weil die eingebauten Umrisse mercator-projiziert sind – dasselbe
-Koordinatensystem, das Kartenkacheln benutzen. Die Kacheln passen deshalb ohne
-Umrechnung darüber, und weil sie in derselben verschobenen Ebene liegen wie
-Marker und Umrisse, muss beim Zoomen nichts nachgeführt werden.
+Koordinatensystem, das Kartenkacheln benutzen.
 
-Die Kacheln kommen von OpenStreetMap; die Adresse steht in `app.js` als
-`KACHEL_QUELLE` und lässt sich gegen einen anderen Anbieter tauschen. Dazu drei
+Die Adresse der Kacheln steht in den Einstellungen der Verwaltung. Dazu drei
 Dinge:
 
 * Die [Nutzungsbedingungen von OpenStreetMap](https://operations.osmfoundation.org/policies/tiles/)
   erlauben nur leichte Nutzung. Für eine Karte, die dauerhaft öffentlich läuft,
-  gehört dort ein eigener Kachel-Anbieter hinein (oder ein selbst betriebener
-  Server).
-* Der Hinweis auf die Kartendaten unten links ist Bedingung der Lizenz und darf
-  nicht entfernt werden.
-* Kommt keine Kachel an – kein Netz, oder eine Umgebung, die fremde Bilder
-  blockiert –, bleibt es bei der weißen Karte. Zoomen funktioniert trotzdem,
-  und ein Hinweis erklärt, warum keine Straßen erscheinen.
+  gehört dort ein eigener Anbieter hinein.
+* Der Hinweis auf die Kartendaten unten links ist Bedingung der Lizenz.
+* Kommt keine Kachel an, bleibt es bei der weißen Karte, und ein Hinweis
+  erklärt, warum keine Straßen erscheinen. Leeres Feld heißt: gar keine
+  Straßenkarte.
 
-## Bedienung
+## Bedienung der Karte
 
 * **Zoomen** – Mausrad, die Knöpfe unten rechts, Doppelklick oder zwei Finger.
-  Von der Gesamtansicht bis auf Straßenebene.
 * **Verschieben** – ziehen.
 * **Standort öffnen** – auf einen Marker klicken, oder über die **Lupe** oben
-  links: bei leerem Suchfeld stehen dort alle Betriebssitze und Projekte,
-  Tippen filtert sie. Mit den Pfeiltasten durch die Treffer, mit Enter öffnen,
-  mit Escape oder einem Klick auf die Karte wieder schließen.
+  links: bei leerem Suchfeld stehen dort alle Standorte, Tippen filtert sie.
+  Pfeiltasten wählen, Enter öffnet, Escape schließt.
 * **Zurück zur Gesamtansicht** – der Knopf mit dem Pfeil unten rechts. Wird die
-  Karte 20 Sekunden lang nicht bedient, stellt sie sich von selbst wieder auf
-  ganz Deutschland und schließt Suche und Detailtafel – gedacht für einen
-  Bildschirm, an dem Leute vorbeikommen. Die Zeit steht in den Einstellungen,
-  `0` schaltet die Rückkehr ab. Wer gerade im Mitarbeiterbereich etwas
-  einträgt, eine Position auf der Karte setzt oder ein Bild groß betrachtet,
-  wird nicht unterbrochen.
+  Karte 20 Sekunden nicht bedient, stellt sie sich von selbst zurück – gedacht
+  für einen Bildschirm, an dem Leute vorbeikommen. Die Zeit steht in den
+  Einstellungen, `0` schaltet es ab.
 
-## Mitarbeiterbereich
+Von der Karte führt bewusst kein Weg in die Verwaltung. Wer dorthin will, ruft
+`/admin` auf.
 
-Oben rechts, geschützt durch ein Kennwort. Das Standardkennwort ist
-`leniger` und sollte unter *Einstellungen* geändert werden.
+## Sicherung und Umzug
 
-Dort lassen sich
+*Einstellungen → Sicherung herunterladen* schreibt alles in eine JSON-Datei,
+die Bilder eingebettet. Eingelesen wird sowohl diese Sicherung als auch der
+Export der früheren Fassung, die noch im Browser gespeichert hat – vorhandene
+Einträge gehen beim Umstieg also nicht verloren.
 
-* Projekte, Betriebssitze und Fernaufschaltungen anlegen, bearbeiten und
-  löschen – je ein eigener Reiter,
-* die Position per Klick auf die Karte setzen,
-* ein Titelbild und beliebig viele weitere Bilder hochladen
-  (werden automatisch auf 1600 px bzw. 1400 px verkleinert),
-* **Eckdaten frei zusammenstellen** – Bezeichnung und Wert sind Freitext,
-  Zeilen lassen sich hinzufügen, sortieren und entfernen. Womit eine neue Art
-  startet, steht in der Tabelle oben – nur ein Vorschlag und vollständig
-  änderbar,
-* die Überschrift der Seite ändern,
-* einstellen, nach wie vielen Sekunden ohne Bedienung die Karte zur
-  Gesamtansicht zurückkehrt,
-* das Kennwort ändern,
-* alle Daten als JSON sichern und wieder einlesen.
-
-Die Anmeldung gilt bis zum Schließen des Browsertabs.
-
-### Zum Schutz
-
-Das Kennwort wird als SHA-256-Hash im Browser abgelegt und dort geprüft. Das
-hält Besucher der Seite zuverlässig aus der Verwaltung heraus, ist aber kein
-Ersatz für eine echte Anmeldung: Wer die Seite mit den Entwicklerwerkzeugen
-auseinandernimmt, kommt an die gespeicherten Daten. Sobald die Karte öffentlich
-erreichbar sein soll und dort vertrauliche Angaben stehen, gehört der
-Mitarbeiterbereich hinter eine serverseitige Anmeldung – zum Beispiel über die
-Supabase-Anmeldung der übrigen Anwendung.
-
-## Datenhaltung
-
-Alle Einträge liegen im `localStorage` des Browsers (Schlüssel
-`projektkarte.v1`), Bilder als Data-URL. Das heißt:
-
-* Die Daten hängen an **einem** Browser auf **einem** Rechner.
-* Der Platz ist auf etwa 5 MB begrenzt; der Füllstand steht in den
-  Einstellungen.
-* Für die Übertragung auf einen anderen Rechner oder als Sicherung dient der
-  Export als JSON-Datei.
-
-Sollen mehrere Leute gemeinsam pflegen, ist der nächste Schritt, die Standorte
-in Supabase abzulegen (Tabellen plus Storage für die Bilder) und
-`app.js` statt auf den `localStorage` auf die Datenbank zugreifen zu lassen.
-Der Aufbau der Daten ist bereits darauf ausgelegt – jeder Eintrag hat eine
-eigene `id`, die Eckdaten sind eine Liste aus Bezeichnung und Wert.
-
-## Eine einzige Datei zum Weitergeben
-
-`projektkarte-komplett.html` ist die ganze Karte in einer Datei – Stil, Skript,
-Kartendaten und Logo stecken darin. Sie lässt sich per Doppelklick öffnen, auf
-einen USB-Stick legen oder verschicken, ohne dass etwas fehlt. Neu gebaut wird
-sie nach Änderungen mit
-
-```bash
-node projektkarte/build-einzeldatei.mjs
-```
-
-## Auf einen Server stellen
-
-Den Ordner `projektkarte/` unverändert auf einen beliebigen Webspace kopieren,
-er ist eigenständig. Für einen lokalen Test genügt
-
-```bash
-npx serve projektkarte
-```
+Genauso gut lässt sich die SQLite-Datei kopieren. Dabei gehören die Dateien
+`projektkarte.sqlite-wal` und `-shm` dazu, wenn sie vorhanden sind, oder die
+Kopie wird im laufenden Betrieb gezogen (`sqlite3 projektkarte.sqlite ".backup
+sicherung.sqlite"`).

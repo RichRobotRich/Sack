@@ -1,0 +1,4 @@
+# Die Datenbank gehört nicht ins Verzeichnis der Quelltexte.
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm

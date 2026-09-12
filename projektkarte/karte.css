@@ -639,61 +639,6 @@ button, input, select, textarea {
 .lichtkasten .vor { right: 18px; top: 50%; transform: translateY(-50%); }
 .lichtkasten .zurueck { left: 18px; top: 50%; transform: translateY(-50%); }
 
-/* ---------------------------------------------------------------- Dialoge */
-
-.schleier {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, .45);
-  z-index: 60;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-
-.schleier.offen { display: flex; }
-
-.dialog {
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 24px 60px rgba(15, 23, 42, .25);
-  width: 100%;
-  max-width: 440px;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.dialog.breit { max-width: 900px; }
-
-.dialog-kopf {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--linie);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.dialog-kopf h3 { margin: 0; font-size: 17px; flex: 1; }
-
-.dialog-koerper {
-  padding: 20px;
-  overflow-y: auto;
-  flex: 1;
-  min-height: 0;
-}
-
-.dialog-fuss {
-  padding: 14px 20px;
-  border-top: 1px solid var(--linie);
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  background: #fcfdfe;
-}
-
 /* ---------------------------------------------------------------- Formulare */
 
 .feld { margin-bottom: 14px; }
