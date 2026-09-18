@@ -3,6 +3,12 @@
 Einsatzplanung für Baustellen: Wocheneinteilung, Tagesansicht, Fahrzeuge,
 Urlaub und Krankmeldungen, Arbeitskleidung, Wochenberichte und Werkstatt.
 
+Dazu der **Baustellen-Assistent**: Nachrichten aus WhatsApp werden zu
+Protokollen, Berichten, Notizen und ToDos, automatisch einer Baustelle
+zugeordnet; fachliche Fragen werden ausschließlich aus hinterlegten
+Firmenunterlagen beantwortet. Aufbau und Umsetzungsplan stehen in
+[docs/ARCHITEKTUR.md](docs/ARCHITEKTUR.md).
+
 React + Vite im Frontend, Supabase als Backend (Postgres, Anmeldung, Storage,
 Edge Functions).
 
@@ -16,7 +22,13 @@ Migrationen einspielen – entweder im SQL-Editor nacheinander:
 ```
 supabase/migrations/0001_initial_schema.sql
 supabase/migrations/0002_storage.sql
+supabase/migrations/0003_harden_function_privileges.sql
+supabase/migrations/0004_assistant_schema.sql
+supabase/migrations/0005_assistant_storage.sql
 ```
+
+`0004` legt die Erweiterung `pgvector` an. Sie ist bei Supabase vorhanden und
+muss nur eingeschaltet werden – die Migration erledigt das selbst.
 
 oder mit der CLI:
 
@@ -90,6 +102,13 @@ Benötigte Secrets (Supabase → Edge Functions → Secrets):
 | `APP_ORIGIN` | Erlaubte Herkunft für CORS | empfohlen |
 | `MS_TENANT_ID`, `MS_CLIENT_ID`, `MS_CLIENT_SECRET`, `MS_REFRESH_TOKEN` | OneDrive-Ablage der Tageseinteilung | nur für das Hallendisplay |
 | `SECONDARY_APP_WEBHOOK_URL`, `SECONDARY_APP_API_KEY` | Benachrichtigung der PlanPro-App bei geändertem Zugriff | optional |
+| `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY` | KI-Dienste des Assistenten (EU-Region) | für den Assistenten |
+| `AZURE_OPENAI_CHAT_DEPLOYMENT` | Bereitstellung für Textmodell | für den Assistenten |
+| `AZURE_OPENAI_EMBEDDING_DEPLOYMENT` | Bereitstellung für Einbettungen, 1536 Dimensionen | für die Fragefunktion |
+| `AZURE_OPENAI_TRANSCRIBE_DEPLOYMENT` | Bereitstellung für Sprachnachrichten | für Sprachnachrichten |
+| `WHATSAPP_VERIFY_TOKEN` | frei gewähltes Wort, mit dem Meta den Webhook prüft | für WhatsApp |
+| `WHATSAPP_APP_SECRET` | prüft die Signatur eingehender Meldungen | für WhatsApp |
+| `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID` | Medien laden und Antworten senden | für WhatsApp |
 
 Fehlen die `MS_*`-Variablen, wird die OneDrive-Ablage übersprungen; die
 E-Mails gehen trotzdem raus.
@@ -104,6 +123,9 @@ src/components/          gemeinsame Komponenten, ui/ ist shadcn/ui
 src/lib/allPages.js      zentrale Seitenliste für Navigation und Rollen
 supabase/migrations/     Datenbankschema
 supabase/functions/      Edge Functions
+supabase/functions/_shared/ai.ts            KI-Zugang (chat, embed, transcribe)
+supabase/functions/_shared/project-match.ts Zuordnung Nachricht -> Baustelle
+docs/ARCHITEKTUR.md      Aufbau und Umsetzungsplan des Assistenten
 assets/logo-source.png   Vorlage für Logo und Symbole
 scripts/                 Generatoren (Schema, Symbole) und Seed
 ```
@@ -182,6 +204,7 @@ npm run dev        # Entwicklungsserver
 npm run build      # Produktions-Build nach dist/
 npm run preview    # Build lokal ansehen
 npm run lint       # ESLint
+npm run test:match # Projektzuordnung prüfen (ohne Netz, ohne Modell)
 ```
 
 ## Installation auf den Geräten
