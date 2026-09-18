@@ -125,6 +125,8 @@ supabase/migrations/     Datenbankschema
 supabase/functions/      Edge Functions
 supabase/functions/_shared/ai.ts            KI-Zugang (chat, embed, transcribe)
 supabase/functions/_shared/project-match.ts Zuordnung Nachricht -> Baustelle
+supabase/functions/_shared/whatsapp.ts      Cloud API: Signatur, Medien, Antworten
+supabase/functions/_shared/entry-pipeline.ts Meldung -> Eintrag (Web wie WhatsApp)
 docs/ARCHITEKTUR.md      Aufbau und Umsetzungsplan des Assistenten
 assets/logo-source.png   Vorlage für Logo und Symbole
 scripts/                 Generatoren (Schema, Symbole) und Seed
@@ -139,8 +141,34 @@ liegt im privaten Bucket `assistant` und wird über `api.assistant` angesprochen
 `uploads` bedient.
 
 Die Verarbeitung läuft in der Edge Function `process-entry`; die eigentliche
-Logik steht in `_shared/entry-pipeline.ts`, damit der WhatsApp-Eingang später
-denselben Weg nimmt.
+Logik steht in `_shared/entry-pipeline.ts`, und der WhatsApp-Eingang nimmt
+denselben Weg.
+
+#### WhatsApp einrichten
+
+1. In der [Meta for Developers](https://developers.facebook.com)-Konsole eine
+   App vom Typ *Business* anlegen und das Produkt *WhatsApp* hinzufügen.
+2. Die Secrets aus der Tabelle oben setzen. `WHATSAPP_VERIFY_TOKEN` ist ein
+   frei gewähltes Wort, das nur beim Einrichten gebraucht wird.
+3. Funktionen bereitstellen:
+
+   ```bash
+   supabase functions deploy whatsapp-webhook process-entry process-inbox
+   ```
+
+4. Bei Meta unter *WhatsApp → Configuration* als Callback-URL eintragen:
+
+   ```
+   https://<projekt-ref>.supabase.co/functions/v1/whatsapp-webhook
+   ```
+
+   Dazu dasselbe Verify-Token, und das Feld `messages` abonnieren.
+5. In der App unter *Verwaltung → WhatsApp-Nummern* die Rufnummern übernehmen
+   und **einzeln freigeben**. Ohne Freigabe wird jede Nachricht abgewiesen –
+   der Webhook ist öffentlich erreichbar, das ist die Zugangskontrolle.
+
+Befehle im Chat: `#baustelle <Name>` setzt die Baustelle für 12 Stunden,
+`#ende` hebt sie auf, `#hilfe` erklärt es dem Monteur.
 
 ### Datenzugriff
 
@@ -216,7 +244,9 @@ npm run dev        # Entwicklungsserver
 npm run build      # Produktions-Build nach dist/
 npm run preview    # Build lokal ansehen
 npm run lint       # ESLint
-npm run test:match # Projektzuordnung prüfen (ohne Netz, ohne Modell)
+npm test           # alle Prüfungen unten
+npm run test:match # Projektzuordnung (ohne Netz, ohne Modell)
+npm run test:whatsapp # Signaturprüfung und Auslesen der Meta-Meldungen
 ```
 
 ## Installation auf den Geräten

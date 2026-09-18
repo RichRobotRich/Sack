@@ -10,7 +10,9 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
     "preview": "vite preview",
-    "test:match": "node --experimental-strip-types scripts/test-project-match.ts"
+    "test:match": "node --experimental-strip-types scripts/test-project-match.ts",
+    "test:whatsapp": "node --experimental-strip-types scripts/test-whatsapp.ts",
+    "test": "npm run test:match && npm run test:whatsapp"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",

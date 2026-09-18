@@ -141,10 +141,12 @@ Noch keine Oberfläche. *(erledigt)*
   Function: WhatsApp-Eingang und Weberfassung unterscheiden sich nur darin,
   woher Text und Anhänge kommen. Alles danach ist identisch und soll es
   bleiben, sonst entstehen zwei Sorten Protokoll.
-* **1b WhatsApp-Eingang.** Webhook mit Signaturprüfung, Medien-Download,
-  Transkription, Bestätigungsnachricht an den Absender.
-* **1c Projektzuordnung.** Kostenträger-Erkennung, `#`-Befehl, KI-Vorschlag,
-  Rückfrage per WhatsApp.
+* **1b WhatsApp-Eingang.** *(erledigt)* Webhook mit Signaturprüfung,
+  Medien-Download, Transkription, Bestätigungsnachricht an den Absender.
+  Dazu die Seite *WhatsApp-Nummern*: der Webhook ist öffentlich erreichbar,
+  die Freigabe der Rufnummer ist die einzige Zugangskontrolle des Kanals.
+* **1c Projektzuordnung.** *(erledigt)* Kostenträger-Erkennung, `#`-Befehl,
+  KI-Vorschlag, Rückfrage per WhatsApp als Auswahlliste.
 
 ### Phase 2 – Wissensdatenbank und Fragefunktion
 
@@ -179,7 +181,37 @@ die Aufgaben, die darin stecken. Die Aufgaben sind eigene Zeilen, damit sie in
 der ToDo-Liste auftauchen, behalten aber über `parent_entry_id` den Verweis auf
 ihren Ursprung.
 
+## Der Weg einer WhatsApp-Nachricht
+
+1. Meta ruft `whatsapp-webhook` auf. Die Signatur wird geprüft – ohne das
+   könnte jeder Nachrichten im Namen beliebiger Monteure einliefern.
+2. Die Rohnachricht wird weggeschrieben, eindeutig über die Meta-Kennung:
+   bleibt die Bestätigung aus, stellt Meta erneut zu, und aus einer
+   Sprachnachricht dürfen nicht zwei Protokolle werden.
+3. Der Webhook meldet **sofort** 200. Meta wartet nur Sekunden; Abtippen und
+   Strukturieren dauern länger.
+4. Im Hintergrund (`EdgeRuntime.waitUntil`) läuft der Handler: Rufnummer
+   freigegeben? Befehl oder Meldung? Medien laden, Pipeline, Antwort.
+5. Blieb die Baustelle offen, fragt der Bot als Auswahlliste nach – solange
+   der Monteur noch am Telefon ist und weiß, wovon die Rede war.
+
+Scheitert Schritt 4, landet die Nachricht in `ingest_job`. `process-inbox`
+arbeitet sie nach, mit wachsendem Abstand und nach drei Versuchen endgültig
+als Fehler.
+
 ## Offene Punkte
+
+* **Zeitplan für `process-inbox`.** Die Funktion existiert und ist aufrufbar,
+  läuft aber noch nicht selbsttätig. Dafür braucht es `pg_cron` mit `pg_net`
+  und den Dienstschlüssel im Supabase-Vault. Bis dahin bleibt eine
+  gescheiterte Nachricht liegen, bis jemand die Funktion aufruft – sichtbar
+  ist sie, der Datensatz steht in `inbound_message` mit Status `fehler`.
+* **Sicherheitshinweis des Supabase-Linters.** `is_admin_user()` und
+  `is_approved_user()` sind für angemeldete Konten aufrufbar, obwohl sie
+  `security definer` sind. Das ist beabsichtigt und in 0003 für die zweite
+  Funktion schon begründet: beide werden in jeder RLS-Regel ausgewertet, ein
+  Entzug würde sämtliche Zugriffe blockieren. Sie geben nur einen
+  Wahrheitswert über das eigene Konto zurück, keine Daten.
 
 * **Ablageort der Dokumente** – OneDrive, SharePoint oder Netzlaufwerk? Danach
   richtet sich Phase 2c. Bis dahin ist der Upload der Weg.

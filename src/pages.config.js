@@ -50,6 +50,7 @@
 import AccountSettings from './pages/AccountSettings';
 import AssistantCapture from './pages/AssistantCapture';
 import AssistantEntries from './pages/AssistantEntries';
+import WhatsappContacts from './pages/WhatsappContacts';
 import ClothingInventory from './pages/ClothingInventory';
 import ClothingRequests from './pages/ClothingRequests';
 import CurrentPlan from './pages/CurrentPlan';
@@ -83,6 +84,7 @@ export const PAGES = {
     "AccountSettings": AccountSettings,
     "AssistantCapture": AssistantCapture,
     "AssistantEntries": AssistantEntries,
+    "WhatsappContacts": WhatsappContacts,
     "ClothingInventory": ClothingInventory,
     "ClothingRequests": ClothingRequests,
     "CurrentPlan": CurrentPlan,

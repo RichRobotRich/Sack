@@ -23,3 +23,9 @@ verify_jwt = true
 
 [functions.process-entry]
 verify_jwt = true
+
+[functions.whatsapp-webhook]
+verify_jwt = false
+
+[functions.process-inbox]
+verify_jwt = true

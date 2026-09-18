@@ -10,7 +10,7 @@ import {
   Home, Calendar, Building2, FileText, Plane, Thermometer, Shirt,
   CalendarDays, ClipboardList, UserPlus, Wrench, Briefcase,
   Users, Car, HardHat, BarChart2, Sun, UserCog, Mail, Newspaper,
-  Shield, Settings, GraduationCap, MessageSquarePlus, Inbox
+  Shield, Settings, GraduationCap, MessageSquarePlus, Inbox, Smartphone
 } from 'lucide-react';
 
 export const ALL_PAGES = [
@@ -58,6 +58,7 @@ export const ALL_PAGES = [
   { id: 'EmailRecipients',          name: 'E-Mail-Empfänger',               group: 'Verwaltung', icon: Mail },
   { id: 'NewsManagement',           name: 'News',                           group: 'Verwaltung', icon: Newspaper },
   { id: 'RoleManagement',           name: 'Rollen',                         group: 'Verwaltung', icon: Shield },
+  { id: 'WhatsappContacts',         name: 'WhatsApp-Nummern',               group: 'Verwaltung', icon: Smartphone },
 
   // Sonstiges
   { id: 'AccountSettings',  name: 'Kontoeinstellungen',    group: 'Sonstiges',           icon: Settings },
