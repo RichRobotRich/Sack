@@ -168,6 +168,11 @@ create table public.entry (
   status text not null default 'entwurf', -- entwurf | offen | erledigt | archiviert
   source text not null default 'web', -- whatsapp | web
 
+  -- Aus einer Sprachnachricht entstehen oft ein Protokoll und daneben zwei
+  -- ToDos. Die ToDos sind eigene Zeilen, damit sie in der ToDo-Liste
+  -- auftauchen, behalten aber den Verweis auf den Eintrag, aus dem sie kommen.
+  parent_entry_id uuid references public.entry(id) on delete set null,
+
   project_id text, -- project.id, null = noch ohne Zuordnung
   project_match_method text, -- kostentraeger | sitzung | ki | manuell | keine
   project_match_confidence numeric, -- 0..1, nur bei Methode ki
@@ -214,6 +219,7 @@ create index entry_project_idx on public.entry (project_id, entry_date desc);
 create index entry_type_status_idx on public.entry (type, status);
 create index entry_review_idx on public.entry (needs_review) where needs_review;
 create index entry_unassigned_idx on public.entry (created_date desc) where project_id is null;
+create index entry_parent_idx on public.entry (parent_entry_id) where parent_entry_id is not null;
 
 alter table public.inbound_message
   add constraint inbound_message_entry_id_fkey

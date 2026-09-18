@@ -123,6 +123,13 @@ const ENTITY_NAMES = [
   'Crew',
   'EmailRecipient',
   'Employee',
+  // Baustellen-Assistent
+  'Entry',
+  'EntryAttachment',
+  'InboundMessage',
+  'KnowledgeDocument',
+  'KnowledgeQuery',
+  'KnowledgeSource',
   'LeaveApprovalRule',
   'LeaveRequest',
   'News',
@@ -136,6 +143,8 @@ const ENTITY_NAMES = [
   'User',
   'Vehicle',
   'WeeklyReport',
+  'WhatsappContact',
+  'WhatsappSession',
   'WorkshopTask',
 ];
 
@@ -280,6 +289,7 @@ const FUNCTION_NAMES = {
   updateUser: 'update-user',
   sendDailyViewPDFEmail: 'send-daily-view-pdf-email',
   downloadWeeklyReport: 'download-weekly-report',
+  processEntry: 'process-entry',
 };
 
 const functions = {
@@ -298,5 +308,53 @@ const functions = {
   },
 };
 
-export const api = { entities, auth, integrations, functions };
+// ---------------------------------------------------------------------------
+// Ablage des Baustellen-Assistenten
+// ---------------------------------------------------------------------------
+
+const ASSISTANT_BUCKET = 'assistant';
+
+/**
+ * Eigener Zugang statt integrations.Core.UploadFile, weil sich der Bucket
+ * grundlegend anders verhält: 'uploads' ist öffentlich lesbar und gibt eine
+ * feste Adresse zurück, 'assistant' ist privat. Hier liegen Sprachnachrichten
+ * und Fotos aus Kundenobjekten – die Anzeige läuft über Links, die nach einer
+ * Stunde ablaufen.
+ */
+const assistant = {
+  /**
+   * Datei ablegen und den Pfad zurückgeben (nicht die Adresse). Das Präfix
+   * erfassung/ ist Pflicht: die Edge Function nimmt nur Pfade von dort an.
+   */
+  async uploadFile(file, { prefix = 'erfassung' } = {}) {
+    const extension = file.name?.includes('.') ? `.${file.name.split('.').pop()}` : '';
+    const path = `${prefix}/${crypto.randomUUID()}${extension}`;
+    const upload = await supabase.storage
+      .from(ASSISTANT_BUCKET)
+      .upload(path, file, { contentType: file.type, upsert: false });
+    if (upload.error) throw upload.error;
+    return { path: upload.data.path, mime_type: file.type, byte_size: file.size };
+  },
+
+  /** Befristete Adresse zum Anzeigen oder Abspielen. */
+  async signedUrl(path, expiresInSeconds = 3600) {
+    const { data, error } = await supabase.storage
+      .from(ASSISTANT_BUCKET)
+      .createSignedUrl(path, expiresInSeconds);
+    if (error) throw error;
+    return data.signedUrl;
+  },
+
+  /** Mehrere auf einmal – spart bei einer Liste mit vielen Fotos die Runden. */
+  async signedUrls(paths, expiresInSeconds = 3600) {
+    if (!paths?.length) return {};
+    const { data, error } = await supabase.storage
+      .from(ASSISTANT_BUCKET)
+      .createSignedUrls(paths, expiresInSeconds);
+    if (error) throw error;
+    return Object.fromEntries(data.map((item) => [item.path, item.signedUrl]));
+  },
+};
+
+export const api = { entities, auth, integrations, functions, assistant };
 export { supabase };

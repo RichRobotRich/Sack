@@ -130,6 +130,18 @@ assets/logo-source.png   Vorlage für Logo und Symbole
 scripts/                 Generatoren (Schema, Symbole) und Seed
 ```
 
+### Baustellen-Assistent
+
+Zwei Seiten in der Gruppe *Assistent*: **Erfassen** nimmt Sprachaufnahme, Text
+und Fotos entgegen, **Einträge** zeigt, was daraus geworden ist. Die Ablage
+liegt im privaten Bucket `assistant` und wird über `api.assistant` angesprochen
+– nicht über `integrations.Core.UploadFile`, das den öffentlichen Bucket
+`uploads` bedient.
+
+Die Verarbeitung läuft in der Edge Function `process-entry`; die eigentliche
+Logik steht in `_shared/entry-pipeline.ts`, damit der WhatsApp-Eingang später
+denselben Weg nimmt.
+
 ### Datenzugriff
 
 Alle Seiten gehen über `src/api/client.js`:

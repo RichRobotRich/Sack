@@ -131,10 +131,16 @@ Noch keine Oberfläche. *(erledigt)*
 
 ### Phase 1 – Eingang und Einträge (MVP)
 
-* **1a Weberfassung.** Erfassen in der PWA: Text, Foto, Sprachaufnahme direkt im
-  Browser. Verarbeitung, Projektzuordnung, Eintragsliste, Detailansicht,
-  Bearbeiten, Freigeben. **Bewusst zuerst** – damit ist das System vollständig
-  nutzbar und testbar, bevor die Freischaltung bei Meta durch ist.
+* **1a Weberfassung.** *(erledigt)* Erfassen in der PWA: Text, Foto,
+  Sprachaufnahme direkt im Browser. Verarbeitung, Projektzuordnung,
+  Eintragsliste, Detailansicht, Bearbeiten, Freigeben. **Bewusst zuerst** –
+  damit ist das System vollständig nutzbar und testbar, bevor die Freischaltung
+  bei Meta durch ist.
+
+  Die Verarbeitung liegt in `_shared/entry-pipeline.ts` und nicht in der Edge
+  Function: WhatsApp-Eingang und Weberfassung unterscheiden sich nur darin,
+  woher Text und Anhänge kommen. Alles danach ist identisch und soll es
+  bleiben, sonst entstehen zwei Sorten Protokoll.
 * **1b WhatsApp-Eingang.** Webhook mit Signaturprüfung, Medien-Download,
   Transkription, Bestätigungsnachricht an den Absender.
 * **1c Projektzuordnung.** Kostenträger-Erkennung, `#`-Befehl, KI-Vorschlag,
@@ -156,6 +162,23 @@ Projekt, Protokoll der Zugriffe.
 PDF-Ausgabe, Versand per E-Mail, ToDos in die Werkstattliste, Mängelbericht
 mit Fristen.
 
+## Bedienung (Stand Phase 1a)
+
+Zwei Seiten, Gruppe *Assistent*:
+
+* **Erfassen** – eine Seite ohne Formularfelder je Eintragsart. Auf der
+  Baustelle wird erzählt, nicht ausgefüllt. Sprachaufnahme, Text und Fotos;
+  Baustelle und Art optional vorgeben, sonst entscheidet die Verarbeitung.
+* **Einträge** – Ansichten *Zu prüfen*, *Ohne Projekt*, *ToDos*, *Alle*.
+  Die ersten beiden sind die wichtigen: alles Automatische ist ein Vorschlag,
+  bis ihn jemand freigegeben hat, und fehlgeschlagene Zuordnungen dürfen nicht
+  unbemerkt liegen bleiben.
+
+Aus einer Meldung können mehrere Einträge entstehen: ein Protokoll und daneben
+die Aufgaben, die darin stecken. Die Aufgaben sind eigene Zeilen, damit sie in
+der ToDo-Liste auftauchen, behalten aber über `parent_entry_id` den Verweis auf
+ihren Ursprung.
+
 ## Offene Punkte
 
 * **Ablageort der Dokumente** – OneDrive, SharePoint oder Netzlaufwerk? Danach
@@ -167,6 +190,10 @@ mit Fristen.
   sind Nutzerinformation, Verzeichnis der Verarbeitungstätigkeiten und die
   Ansage, dass Gesundheitsdaten und personenbezogene Kundendaten nicht über
   diesen Weg gehen.
+* **Seitenweises Laden.** Die Eintragsliste holt derzeit alle Einträge auf
+  einmal. Das trägt durch den Pilotbetrieb, aber nicht durch zwei Jahre mit
+  200 Nutzern. Spätestens mit Phase 3 braucht es Blätterung und eine
+  Vorauswahl auf die Baustellen des Benutzers.
 * **24-Stunden-Fenster.** Meta erlaubt freie Antworten nur binnen 24 Stunden
   nach der letzten Nachricht des Nutzers. Für Rückfragen zur Projektzuordnung
   reicht das; für alles Angestoßene braucht es genehmigte Vorlagen.

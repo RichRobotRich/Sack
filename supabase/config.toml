@@ -20,3 +20,6 @@ verify_jwt = true
 
 [functions.send-daily-view-pdf-email]
 verify_jwt = true
+
+[functions.process-entry]
+verify_jwt = true

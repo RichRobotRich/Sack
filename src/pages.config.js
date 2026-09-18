@@ -48,6 +48,8 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import AccountSettings from './pages/AccountSettings';
+import AssistantCapture from './pages/AssistantCapture';
+import AssistantEntries from './pages/AssistantEntries';
 import ClothingInventory from './pages/ClothingInventory';
 import ClothingRequests from './pages/ClothingRequests';
 import CurrentPlan from './pages/CurrentPlan';
@@ -79,6 +81,8 @@ import __Layout from './Layout.jsx';
 
 export const PAGES = {
     "AccountSettings": AccountSettings,
+    "AssistantCapture": AssistantCapture,
+    "AssistantEntries": AssistantEntries,
     "ClothingInventory": ClothingInventory,
     "ClothingRequests": ClothingRequests,
     "CurrentPlan": CurrentPlan,

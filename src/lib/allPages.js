@@ -10,7 +10,7 @@ import {
   Home, Calendar, Building2, FileText, Plane, Thermometer, Shirt,
   CalendarDays, ClipboardList, UserPlus, Wrench, Briefcase,
   Users, Car, HardHat, BarChart2, Sun, UserCog, Mail, Newspaper,
-  Shield, Settings, GraduationCap
+  Shield, Settings, GraduationCap, MessageSquarePlus, Inbox
 } from 'lucide-react';
 
 export const ALL_PAGES = [
@@ -22,6 +22,10 @@ export const ALL_PAGES = [
   { id: 'LeaveRequests',     name: 'Urlaubsantrag',          group: 'Standard',            icon: Plane },
   { id: 'SickReports',       name: 'Krankmeldung',           group: 'Standard',            icon: Thermometer },
   { id: 'ClothingRequests',  name: 'Arbeitskleidung',        group: 'Standard',            icon: Shirt },
+
+  // Baustellen-Assistent
+  { id: 'AssistantCapture',  name: 'Erfassen',               group: 'Assistent',           icon: MessageSquarePlus },
+  { id: 'AssistantEntries',  name: 'Einträge',               group: 'Assistent',           icon: Inbox },
 
   // Disposition
   { id: 'WeeklyPlanning',    name: 'Wocheneinteilung',       group: 'Disposition',         icon: CalendarDays },
