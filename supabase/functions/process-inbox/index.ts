@@ -5,11 +5,12 @@
  * Normalfall ab, aber nicht den Fall, dass Azure gerade drosselt oder die
  * Instanz stirbt. Dafür gibt es ingest_job und diese Funktion.
  *
- * Aufrufen kann sie ein Admin aus der Oberfläche – oder ein Zeitplan, sobald
- * einer eingerichtet ist (Supabase: pg_cron plus pg_net).
+ * Aufgerufen wird sie vom Zeitplan (0006_scheduling.sql) und bei Bedarf von
+ * einem angemeldeten Benutzer.
  */
 
-import { corsHeaders, jsonResponse, requireApprovedCaller, serviceRoleClient } from '../_shared/context.ts';
+import { corsHeaders, jsonResponse, serviceRoleClient } from '../_shared/context.ts';
+import { requireWorkerOrCaller } from '../_shared/worker-auth.ts';
 import { handleInboundMessage } from '../_shared/whatsapp-handler.ts';
 
 const MAX_ATTEMPTS = 3;
@@ -18,8 +19,8 @@ const BATCH = 10;
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
-  const check = await requireApprovedCaller(req);
-  if ('response' in check) return check.response;
+  const zugang = await requireWorkerOrCaller(req);
+  if ('response' in zugang) return zugang.response;
 
   const admin = serviceRoleClient();
 

@@ -150,11 +150,23 @@ Noch keine Oberfläche. *(erledigt)*
 
 ### Phase 2 – Wissensdatenbank und Fragefunktion
 
-* **2a Fragen im Web.** Upload, Textextraktion (PDF, Word, Excel), Zerlegung,
-  Einbettung, Hybrid-Suche, belegte Antwort, Seite „Fragen".
-* **2b Fragen per WhatsApp.** Gleiche Antwortlogik über den Chat.
+* **2a Fragen im Web.** *(erledigt)* Upload, Textextraktion (PDF, Word,
+  Excel, CSV, Text), Zerlegung, Einbettung, Hybrid-Suche, belegte Antwort,
+  Seite „Fragen" und Verwaltung „Wissensdatenbank".
+* **2b Fragen per WhatsApp.** *(erledigt)* `#frage …` nimmt denselben Weg,
+  dieselben drei Sperren, dieselbe Standardantwort.
 * **2c Anbindung OneDrive/SharePoint.** Abgleich über Microsoft Graph, damit
   der bestehende Ablageort die Quelle bleibt und niemand doppelt pflegt.
+
+### Phase 2.5 – Selbstlauf *(erledigt)*
+`pg_cron` stößt alle fünf Minuten zwei Aufgaben an: Nacharbeit gescheiterter
+WhatsApp-Nachrichten und Einlesen neuer Dokumente. Der Zeitplan weist sich mit
+einem Geheimnis aus dem Vault aus – es steht weder in der Migration noch in
+der Aufgabendefinition, die jeder lesen kann, der `cron.job` abfragt.
+
+Warum nicht einfach im Code weiterarbeiten? Weil genau die Fälle abzudecken
+sind, in denen der Code gerade *nicht* läuft. Ein Nacharbeiter, der nur im
+selben Prozess startet, der eben abgestürzt ist, hilft niemandem.
 
 ### Phase 3 – Verwaltung und Rechte
 Freigabe von Rufnummern, neue Seiten in der Rollenverwaltung, Rechte je
@@ -199,13 +211,30 @@ Scheitert Schritt 4, landet die Nachricht in `ingest_job`. `process-inbox`
 arbeitet sie nach, mit wachsendem Abstand und nach drei Versuchen endgültig
 als Fehler.
 
+## Was von allein läuft
+
+| Wann | Was |
+| --- | --- |
+| sofort beim Eingang | WhatsApp-Nachricht → Eintrag, Antwort an den Absender |
+| sofort nach Upload | Dokument einlesen und durchsuchbar machen |
+| alle 5 Minuten | gescheiterte Nachrichten nacharbeiten (3 Versuche, wachsender Abstand) |
+| alle 5 Minuten | liegengebliebene Dokumente einlesen |
+
+Nichts davon braucht einen Menschen. Was endgültig scheitert, bleibt sichtbar:
+`inbound_message` mit Status `fehler`, `knowledge_document` mit Fehlertext auf
+der Seite *Wissensdatenbank*.
+
 ## Offene Punkte
 
-* **Zeitplan für `process-inbox`.** Die Funktion existiert und ist aufrufbar,
-  läuft aber noch nicht selbsttätig. Dafür braucht es `pg_cron` mit `pg_net`
-  und den Dienstschlüssel im Supabase-Vault. Bis dahin bleibt eine
-  gescheiterte Nachricht liegen, bis jemand die Funktion aufruft – sichtbar
-  ist sie, der Datensatz steht in `inbound_message` mit Status `fehler`.
+* **OneDrive-Abgleich (Phase 2c) fehlt noch.** Dokumente werden bisher
+  hochgeladen. Damit die Ablage die Quelle bleibt und niemand doppelt pflegt,
+  braucht es den Abgleich über Microsoft Graph – die Bausteine dafür
+  (`_shared/onedrive.ts`, `knowledge_source.delta_token`) liegen bereit, die
+  App-Registrierung braucht zusätzlich `Files.Read.All`.
+* **Gescannte PDFs** werden erkannt und ausdrücklich abgelehnt, statt als
+  leeres Dokument durchzugehen. Texterkennung (Azure Document Intelligence,
+  EU-Region) wäre der nächste Schritt, sobald klar ist, wie groß der Anteil
+  ist.
 * **Sicherheitshinweis des Supabase-Linters.** `is_admin_user()` und
   `is_approved_user()` sind für angemeldete Konten aufrufbar, obwohl sie
   `security definer` sind. Das ist beabsichtigt und in 0003 für die zweite

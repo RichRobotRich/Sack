@@ -10,6 +10,7 @@ import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import { parseCommand, resolveProjectQuery, type ProjectLike } from './project-match.ts';
 import { runEntryPipeline, STORAGE_BUCKET, type IncomingAttachment } from './entry-pipeline.ts';
 import { downloadMedia, sendChoice, sendText } from './whatsapp.ts';
+import { answerQuestion } from './knowledge.ts';
 
 /** Wie lange ein per "#baustelle" gesetzter Kontext gilt. */
 const SESSION_HOURS = 12;
@@ -21,6 +22,7 @@ const HELP_TEXT = [
   '• Steht die Kostenträger-Nummer im Text, wird die Baustelle daraus erkannt.',
   '• #baustelle Musterstraße – legt die Baustelle für alles Folgende fest',
   '• #ende – hebt die Baustelle wieder auf',
+  '• #frage Welcher Druck beim Abpressen? – Antwort aus den Firmenunterlagen',
   '• #hilfe – dieser Text',
 ].join('\n');
 
@@ -257,9 +259,31 @@ export const handleInboundMessage = async (
   }
 
   if (command.kind === 'frage') {
-    // Phase 2b. Bis dahin ist eine ehrliche Absage besser als eine Antwort
-    // aus dem Modellwissen - genau das soll das System nie tun.
-    await sendText(phone, 'Die Wissensdatenbank ist noch nicht freigeschaltet. Deine Frage wurde nicht gespeichert.');
+    if (!command.argument) {
+      await sendText(phone, 'Was möchtest du wissen? Zum Beispiel: #frage Welcher Druck beim Abpressen?');
+      await markMessage(admin, message.id, { status: 'verarbeitet' });
+      return;
+    }
+
+    // Dieselbe Antwortlogik wie im Web, inklusive der drei Sperren. Steht
+    // nichts Passendes in der Ablage, kommt das ausdrücklich zurück - eine
+    // Antwort aus dem Modellwissen wäre genau das, was nie passieren darf.
+    const antwort = await answerQuestion(admin, {
+      question: command.argument,
+      channel: 'whatsapp',
+      phone,
+    });
+
+    let text = antwort.answer;
+    if (antwort.answered && antwort.sources.length > 0) {
+      const quellen = [...new Set(antwort.sources.map((quelle) =>
+        quelle.page ? `${quelle.title}, S. ${quelle.page}` : quelle.title))];
+      text += `\n\n📄 ${quellen.join(' · ')}`;
+    } else {
+      text += '\nBitte im Büro nachfragen.';
+    }
+
+    await sendText(phone, text);
     await markMessage(admin, message.id, { status: 'verarbeitet' });
     return;
   }

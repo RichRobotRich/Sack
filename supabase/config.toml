@@ -27,5 +27,12 @@ verify_jwt = true
 [functions.whatsapp-webhook]
 verify_jwt = false
 
+# Ruft der Zeitplan auf; der weist sich mit WORKER_SECRET aus.
 [functions.process-inbox]
+verify_jwt = false
+
+[functions.index-knowledge]
+verify_jwt = false
+
+[functions.ask-knowledge]
 verify_jwt = true

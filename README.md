@@ -9,6 +9,9 @@ zugeordnet; fachliche Fragen werden ausschließlich aus hinterlegten
 Firmenunterlagen beantwortet. Aufbau und Umsetzungsplan stehen in
 [docs/ARCHITEKTUR.md](docs/ARCHITEKTUR.md).
 
+Einrichtung Schritt für Schritt:
+[WhatsApp](docs/WHATSAPP-EINRICHTUNG.md) · [Azure OpenAI](docs/AZURE-EINRICHTUNG.md)
+
 React + Vite im Frontend, Supabase als Backend (Postgres, Anmeldung, Storage,
 Edge Functions).
 
@@ -25,6 +28,7 @@ supabase/migrations/0002_storage.sql
 supabase/migrations/0003_harden_function_privileges.sql
 supabase/migrations/0004_assistant_schema.sql
 supabase/migrations/0005_assistant_storage.sql
+supabase/migrations/0006_scheduling.sql
 ```
 
 `0004` legt die Erweiterung `pgvector` an. Sie ist bei Supabase vorhanden und
@@ -109,9 +113,32 @@ Benötigte Secrets (Supabase → Edge Functions → Secrets):
 | `WHATSAPP_VERIFY_TOKEN` | frei gewähltes Wort, mit dem Meta den Webhook prüft | für WhatsApp |
 | `WHATSAPP_APP_SECRET` | prüft die Signatur eingehender Meldungen | für WhatsApp |
 | `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID` | Medien laden und Antworten senden | für WhatsApp |
+| `WORKER_SECRET` | damit der Zeitplan die Hintergrund-Funktionen aufrufen darf | für den Selbstlauf |
 
 Fehlen die `MS_*`-Variablen, wird die OneDrive-Ablage übersprungen; die
 E-Mails gehen trotzdem raus.
+
+### 6. Zeitplan freischalten
+
+`0006_scheduling.sql` legt zwei wiederkehrende Aufgaben an: gescheiterte
+WhatsApp-Nachrichten nacharbeiten und neue Dokumente einlesen. Damit der
+Zeitplan die Funktionen aufrufen darf, braucht er zwei Werte im Vault
+(Supabase → Integrations → Vault → *New secret*):
+
+| Name | Wert |
+| --- | --- |
+| `edge_functions_url` | `https://<projekt-ref>.supabase.co/functions/v1` |
+| `worker_secret` | dieselbe Zeichenfolge wie das Secret `WORKER_SECRET` |
+
+Fehlt einer der beiden, tut der Zeitplan nichts und schreibt eine Warnung ins
+Datenbank-Protokoll – er scheitert nicht still.
+
+Prüfen, ob es läuft:
+
+```sql
+select jobname, schedule, active from cron.job where jobname like 'assistent-%';
+select * from cron.job_run_details order by start_time desc limit 5;
+```
 
 ## Aufbau
 
@@ -127,6 +154,9 @@ supabase/functions/_shared/ai.ts            KI-Zugang (chat, embed, transcribe)
 supabase/functions/_shared/project-match.ts Zuordnung Nachricht -> Baustelle
 supabase/functions/_shared/whatsapp.ts      Cloud API: Signatur, Medien, Antworten
 supabase/functions/_shared/entry-pipeline.ts Meldung -> Eintrag (Web wie WhatsApp)
+supabase/functions/_shared/knowledge.ts     Dokumente einlesen, Fragen belegt beantworten
+docs/WHATSAPP-EINRICHTUNG.md  Anleitung Schritt für Schritt
+docs/AZURE-EINRICHTUNG.md     Anleitung Schritt für Schritt
 docs/ARCHITEKTUR.md      Aufbau und Umsetzungsplan des Assistenten
 assets/logo-source.png   Vorlage für Logo und Symbole
 scripts/                 Generatoren (Schema, Symbole) und Seed
@@ -143,6 +173,21 @@ liegt im privaten Bucket `assistant` und wird über `api.assistant` angesprochen
 Die Verarbeitung läuft in der Edge Function `process-entry`; die eigentliche
 Logik steht in `_shared/entry-pipeline.ts`, und der WhatsApp-Eingang nimmt
 denselben Weg.
+
+**Wissensdatenbank.** Unter *Verwaltung → Wissensdatenbank* werden PDF, Word,
+Excel, CSV und Textdateien hochgeladen und sofort eingelesen. Gefragt wird
+unter *Assistent → Fragen* oder per WhatsApp mit `#frage …`.
+
+Antworten stammen ausschließlich aus diesen Unterlagen. Dafür sorgen drei
+Sperren nacheinander (`_shared/knowledge.ts`): findet die Suche nichts über
+der Mindestähnlichkeit, wird das Modell gar nicht erst gefragt; das Modell
+bekommt nur die gefundenen Abschnitte und muss jede Aussage mit einer Kennung
+belegen; jede genannte Kennung wird danach gegen die übergebenen Abschnitte
+geprüft. Fällt eine davon, lautet die Antwort „Keine passenden Informationen
+gefunden."
+
+Die Registerkarte *Ohne Antwort* zeigt, worauf nichts gefunden wurde – das ist
+die Liste der Dokumente, die in der Ablage noch fehlen.
 
 #### WhatsApp einrichten
 
@@ -245,8 +290,9 @@ npm run build      # Produktions-Build nach dist/
 npm run preview    # Build lokal ansehen
 npm run lint       # ESLint
 npm test           # alle Prüfungen unten
-npm run test:match # Projektzuordnung (ohne Netz, ohne Modell)
+npm run test:match    # Projektzuordnung (ohne Netz, ohne Modell)
 npm run test:whatsapp # Signaturprüfung und Auslesen der Meta-Meldungen
+npm run test:chunk    # Zerlegung der Dokumente
 ```
 
 ## Installation auf den Geräten

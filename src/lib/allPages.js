@@ -10,7 +10,7 @@ import {
   Home, Calendar, Building2, FileText, Plane, Thermometer, Shirt,
   CalendarDays, ClipboardList, UserPlus, Wrench, Briefcase,
   Users, Car, HardHat, BarChart2, Sun, UserCog, Mail, Newspaper,
-  Shield, Settings, GraduationCap, MessageSquarePlus, Inbox, Smartphone
+  Shield, Settings, GraduationCap, MessageSquarePlus, Inbox, Smartphone, Search, BookOpen
 } from 'lucide-react';
 
 export const ALL_PAGES = [
@@ -26,6 +26,7 @@ export const ALL_PAGES = [
   // Baustellen-Assistent
   { id: 'AssistantCapture',  name: 'Erfassen',               group: 'Assistent',           icon: MessageSquarePlus },
   { id: 'AssistantEntries',  name: 'Einträge',               group: 'Assistent',           icon: Inbox },
+  { id: 'Ask',               name: 'Fragen',                 group: 'Assistent',           icon: Search },
 
   // Disposition
   { id: 'WeeklyPlanning',    name: 'Wocheneinteilung',       group: 'Disposition',         icon: CalendarDays },
@@ -59,6 +60,7 @@ export const ALL_PAGES = [
   { id: 'NewsManagement',           name: 'News',                           group: 'Verwaltung', icon: Newspaper },
   { id: 'RoleManagement',           name: 'Rollen',                         group: 'Verwaltung', icon: Shield },
   { id: 'WhatsappContacts',         name: 'WhatsApp-Nummern',               group: 'Verwaltung', icon: Smartphone },
+  { id: 'KnowledgeBase',            name: 'Wissensdatenbank',               group: 'Verwaltung', icon: BookOpen },
 
   // Sonstiges
   { id: 'AccountSettings',  name: 'Kontoeinstellungen',    group: 'Sonstiges',           icon: Settings },

@@ -290,6 +290,9 @@ const FUNCTION_NAMES = {
   sendDailyViewPDFEmail: 'send-daily-view-pdf-email',
   downloadWeeklyReport: 'download-weekly-report',
   processEntry: 'process-entry',
+  askKnowledge: 'ask-knowledge',
+  indexKnowledge: 'index-knowledge',
+  processInbox: 'process-inbox',
 };
 
 const functions = {
